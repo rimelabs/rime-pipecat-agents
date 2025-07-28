@@ -1,0 +1,32 @@
+[project]
+name = "rime-pipecate-agents"
+version = "0.1.0"
+description = "Rime Pipecat hosted agent demonstrating SST -> LLM -> TTS implementation"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "uvicorn==0.35.0",
+    "python-dotenv==1.1.1",
+    "pipecat-ai[webrtc,websocket,daily,deepgram,silero,rime,openai]==0.0.76",
+    "pipecat-ai-small-webrtc-prebuilt==1.0.0",
+    "aiofiles==23.2.1",
+    "simpleaudio>=1.0.4",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=7.0.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+]
+override-dependencies = [
+    "llvmlite>=0.41.0",
+    "numba>=0.58.0",
+]
