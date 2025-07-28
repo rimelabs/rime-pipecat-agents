@@ -87,13 +87,15 @@ async def run_example(
     transport: BaseTransport, args: argparse.Namespace, handle_sigint: bool
 ) -> None:
     """
-    Run the Rime TTS bot example.
+    Run the Rime conversational AI bot example.
 
     This function sets up and runs a pipeline that:
-    1. Initializes the Rime TTS service
-    2. Sets up audio buffering
-    3. Responds to client connections with predefined TTS messages
-    4. Records the bot's audio output if recording is enabled
+    1. Initializes the Deepgram STT (Speech-to-Text) service
+    2. Sets up OpenAI LLM (Language Model) for conversation
+    3. Initializes the Rime TTS (Text-to-Speech) service
+    4. Sets up audio buffering for processing
+    5. Creates a complete conversational pipeline (STT → LLM → TTS)
+    6. Records the bot's audio output if recording is enabled
 
     Args:
         transport: The transport layer to use (Daily, Twilio, or WebRTC)
