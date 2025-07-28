@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 from pipecat.frames.frames import EndFrame, TTSSpeakFrame
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.runner import PipelineRunner
-from pipecat.pipeline.task import PipelineTask, PipelineParams
+from pipecat.pipeline.task import PipelineParams, PipelineTask
 from pipecat.processors.audio.audio_buffer_processor import AudioBufferProcessor
 from pipecat.services.rime.tts import RimeTTSService
 from pipecat.transcriptions.language import Language
@@ -74,7 +74,7 @@ async def save_audio_file(
 
 async def run_example(
     transport: BaseTransport,
-    _: argparse.Namespace,
+    args: argparse.Namespace,
     handle_sigint: bool
 ) -> None:
     """
@@ -84,11 +84,11 @@ async def run_example(
     1. Initializes the Rime TTS service
     2. Sets up audio buffering
     3. Responds to client connections with predefined TTS messages
-    4. Records the bot's audio output
+    4. Records the bot's audio output if recording is enabled
 
     Args:
         transport: The transport layer to use (Daily, Twilio, or WebRTC)
-        args: Command line arguments
+        args: Command line arguments containing record flag
         handle_sigint: Whether to handle interrupt signals
     """
     logger.info("Starting Rime TTS bot example")
@@ -136,7 +136,8 @@ async def run_example(
     @transport.event_handler("on_client_connected")
     async def on_client_connected(transport, client) -> None:
         """Handle new client connections by starting recording and sending welcome messages."""
-        await audiobuffer.start_recording()
+        if args.record:
+            await audiobuffer.start_recording()
         await task.queue_frames([
             TTSSpeakFrame(
                 "Welcome! This is a demonstration of Rime's Text-to-Speech capabilities. "
@@ -155,6 +156,9 @@ async def run_example(
         num_channels,
     ) -> None:
         """Save bot's audio output to a WAV file."""
+        if not args.record:
+            return
+
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         os.makedirs("recordings", exist_ok=True)
 
@@ -166,8 +170,10 @@ async def run_example(
     runner = PipelineRunner(handle_sigint=handle_sigint)
     await runner.run(task)
 
-
 if __name__ == "__main__":
     from pipecat.examples.run import main
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--record', action='store_true',
+                        default=False, help='Enable audio recording')
     logger.info("Starting the bot")
-    main(run_example, transport_params=transport_params)
+    main(run_example, transport_params=transport_params, parser=parser)
