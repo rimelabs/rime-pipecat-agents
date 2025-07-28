@@ -132,7 +132,7 @@ async def run_example(
             messages=[
                 {
                     "role": "system",
-                    "content": "You are a helpful assistant. Keep responses concise.",
+                    "content": "You are a helpful assistant. Keep responses concise. and dont give output in markdown format.",
                 }
             ],
         )
