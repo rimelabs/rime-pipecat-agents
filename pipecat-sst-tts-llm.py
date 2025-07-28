@@ -21,6 +21,7 @@ from pipecat.transports.services.daily import DailyParams
 from pipecat.services.deepgram.stt import DeepgramSTTService
 from pipecat.services.openai.llm import OpenAILLMService
 from pipecat.processors.aggregators.openai_llm_context import OpenAILLMContext
+from pipecat.audio.vad.silero import SileroVADAnalyzer
 
 
 # Configure logging
@@ -33,9 +34,19 @@ load_dotenv(override=True)
 # Transport configuration mapping
 # Each transport is defined as a lambda to avoid premature instantiation
 transport_params: Dict[str, Callable[[], TransportParams]] = {
-    "daily": lambda: DailyParams(audio_out_enabled=True),
-    "twilio": lambda: FastAPIWebsocketParams(audio_out_enabled=True),
-    "webrtc": lambda: TransportParams(audio_out_enabled=True, audio_in_enabled=True),
+    "daily": lambda: DailyParams(
+        audio_in_enabled=True, audio_out_enabled=True, vad_analyzer=SileroVADAnalyzer()
+    ),
+    "twilio": lambda: FastAPIWebsocketParams(
+        audio_in_enabled=True,
+        audio_out_enabled=True,
+        vad_analyzer=SileroVADAnalyzer(),
+    ),
+    "webrtc": lambda: TransportParams(
+        audio_in_enabled=True,
+        audio_out_enabled=True,
+        vad_analyzer=SileroVADAnalyzer(),
+    ),
 }
 
 
@@ -131,7 +142,7 @@ async def run_example(
         logger.info("Initializing Rime TTS service")
         tts = RimeTTSService(
             api_key=rime_api_key,
-            voice_id="rex",
+            voice_id="willow",
             model="mistv2",
             url="wss://users.rime.ai/ws2",
             params=RimeTTSService.InputParams(
@@ -172,13 +183,12 @@ async def run_example(
             """Handle new client connections by starting recording and sending welcome messages."""
             if args.record:
                 await audiobuffer.start_recording()
-            logger.info(f"Client connected")
+            logger.info("Client connected")
             # Start conversation - empty prompt to let LLM follow system instructions
-            await task.queue_frames([context_aggregator.user().get_context_frame()])
 
         @transport.event_handler("on_client_disconnected")
         async def on_client_disconnected(transport, client):
-            logger.info(f"Client disconnected")
+            logger.info("Client disconnected")
             await task.cancel()
 
         # Handler for merged audio
