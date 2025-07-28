@@ -4,7 +4,7 @@ import io
 import logging
 import os
 import wave
-from typing import Dict, Callable,
+from typing import Dict, Callable
 
 import aiofiles
 from dotenv import load_dotenv
@@ -141,9 +141,6 @@ async def run_example(
             TTSSpeakFrame(
                 "Welcome! This is a demonstration of Rime's Text-to-Speech capabilities. "
                 "The voice you're hearing is generated in real-time using advanced AI technology."
-            ),
-            TTSSpeakFrame(
-                "We are using pipecat to build a bot that can say one thing."
             ),
             EndFrame()
         ])
