@@ -1,6 +1,10 @@
 import argparse
 import logging
 import os
+import datetime
+import wave
+import io
+import aiofiles
 
 from dotenv import load_dotenv
 from pipecat.transports.services.daily import DailyParams
@@ -12,6 +16,8 @@ from pipecat.pipeline.runner import PipelineRunner
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.frames.frames import EndFrame, TTSSpeakFrame
 from pipecat.transcriptions.language import Language
+from pipecat.processors.audio.audio_buffer_processor import AudioBufferProcessor
+
 
 # Configure logger
 logger = logging.getLogger("rime-pipecat")
@@ -27,8 +33,22 @@ load_dotenv(override=True)
 transport_params = {
     "daily": lambda: DailyParams(audio_out_enabled=True),
     "twilio": lambda: FastAPIWebsocketParams(audio_out_enabled=True),
-    "webrtc": lambda: TransportParams(audio_out_enabled=True),
+    "webrtc": lambda: TransportParams(audio_out_enabled=True, audio_in_enabled=True),
 }
+
+
+async def save_audio_file(audio: bytes, filename: str, sample_rate: int, num_channels: int):
+    """Save audio data to a WAV file."""
+    if len(audio) > 0:
+        with io.BytesIO() as buffer:
+            with wave.open(buffer, "wb") as wf:
+                wf.setsampwidth(2)
+                wf.setnchannels(num_channels)
+                wf.setframerate(sample_rate)
+                wf.writeframes(audio)
+            async with aiofiles.open(filename, "wb") as file:
+                await file.write(buffer.getvalue())
+        logger.info(f"Audio saved to {filename}")
 
 
 async def run_example(transport: BaseTransport, _: argparse.Namespace, handle_sigint: bool):
@@ -51,16 +71,23 @@ async def run_example(transport: BaseTransport, _: argparse.Namespace, handle_si
         )
     )
     logger.info("pipeline Setup")
+    audiobuffer = AudioBufferProcessor()
+
     # PipelineTask is the central orchestrator that manages pipeline execution, frame routing, and lifecycle events
     # Pipeline is the actual chain of frame processors (like TTS, LLM, STT services) connected in sequence
     params = PipelineParams(enable_metrics=True,
                             enable_usage_metrics=True)
-    task = PipelineTask(Pipeline([tts, transport.output()]), params=params)
+    task = PipelineTask(Pipeline([
+        transport.input(),
+        tts,
+        transport.output(),
+        audiobuffer]), params=params)
 
     # Register an event handler so we can play the audio when the client joins
     @transport.event_handler("on_client_connected")
     async def on_client_connected(transport, client):
         # The queue_frames() method allows you to inject frames into the pipeline for processing:
+        await audiobuffer.start_recording()
         await task.queue_frames([
             TTSSpeakFrame(
                 "Welcome! This is a demonstration of Rime's Text-to-Speech capabilities. The voice you're hearing is generated in real-time using advanced AI technology."),
@@ -69,6 +96,16 @@ async def run_example(transport: BaseTransport, _: argparse.Namespace, handle_si
             EndFrame()])
     # PipelineRunner is the high-level execution manager that runs pipeline tasks with lifecycle and signal handling .
     # The handle_sigint parameter controls whether PipelineRunner automatically handles system interrupt signals (SIGINT and SIGTERM) for graceful shutdown , Resource Cleanup:
+
+    # Handler for separate tracks
+    @audiobuffer.event_handler("on_track_audio_data")
+    async def on_track_audio_data(buffer, user_audio, bot_audio, sample_rate, num_channels):
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        os.makedirs("recordings", exist_ok=True)
+        # Save bot audio
+        bot_filename = f"recordings/bot_{timestamp}.wav"
+        await save_audio_file(bot_audio, bot_filename, sample_rate, 1)
+
     runner = PipelineRunner(handle_sigint=handle_sigint)
 
     await runner.run(task)
