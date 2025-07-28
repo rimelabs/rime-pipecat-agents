@@ -61,10 +61,12 @@ async def run_example(transport: BaseTransport, _: argparse.Namespace, handle_si
     @transport.event_handler("on_client_connected")
     async def on_client_connected(transport, client):
         # The queue_frames() method allows you to inject frames into the pipeline for processing:
-        await task.queue_frames([TTSSpeakFrame("Welcome! This is a demonstration of Rime's Text-to-Speech capabilities. The voice you're hearing is generated in real-time using advanced AI technology."),
-                                 TTSSpeakFrame(
-                                     "We are using pipecat to build a bot that can say one thing"),
-                                 EndFrame()])
+        await task.queue_frames([
+            TTSSpeakFrame(
+                "Welcome! This is a demonstration of Rime's Text-to-Speech capabilities. The voice you're hearing is generated in real-time using advanced AI technology."),
+            TTSSpeakFrame(
+                "We are using pipecat to build a bot that can say one thing."),
+            EndFrame()])
     # PipelineRunner is the high-level execution manager that runs pipeline tasks with lifecycle and signal handling .
     # The handle_sigint parameter controls whether PipelineRunner automatically handles system interrupt signals (SIGINT and SIGTERM) for graceful shutdown , Resource Cleanup:
     runner = PipelineRunner(handle_sigint=handle_sigint)
