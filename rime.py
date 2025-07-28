@@ -117,6 +117,8 @@ async def run_example(
     audiobuffer = AudioBufferProcessor()
 
     # Set up the pipeline
+    # Pipeline is the actual chain of frame processors (like TTS, LLM, STT services) connected in sequence
+    # PipelineTask is the central orchestrator that manages pipeline execution, frame routing, and lifecycle events
     pipeline_params = PipelineParams(
         enable_metrics=True,
         enable_usage_metrics=True
@@ -133,6 +135,7 @@ async def run_example(
     )
 
     # Handle client connection events
+    # The queue_frames() method allows you to inject frames into the pipeline for processing
     @transport.event_handler("on_client_connected")
     async def on_client_connected(transport, client) -> None:
         """Handle new client connections by starting recording and sending welcome messages."""
@@ -146,7 +149,7 @@ async def run_example(
             EndFrame()
         ])
 
-    # Handle audio recording
+    # Handle audio recording - Handler for separate tracks
     @audiobuffer.event_handler("on_track_audio_data")
     async def on_track_audio_data(
         buffer,
@@ -166,9 +169,37 @@ async def run_example(
         bot_filename = f"recordings/bot_{timestamp}.wav"
         await save_audio_file(bot_audio, bot_filename, sample_rate, 1)
 
-    # Run the pipeline
+    # PipelineRunner is the high-level execution manager that runs pipeline tasks
+    # with lifecycle and signal handling. The handle_sigint parameter controls whether
+    # PipelineRunner automatically handles system interrupt signals (SIGINT and SIGTERM)
+    # for graceful shutdown and resource cleanup
     runner = PipelineRunner(handle_sigint=handle_sigint)
     await runner.run(task)
+
+# Pipecat Examples Runner Utility
+# -----------------------------
+#
+# A standardized utility for running example bot scripts in the Pipecat framework. This utility
+# enables developers to build and test their bots using consistent patterns across different
+# transport layers.
+#
+# Usage:
+#     The main function accepts two parameters:
+#     1. run_example: Your bot's main execution function
+#     2. transport_params: A dictionary defining available transports:
+#        - "daily": Daily.co WebRTC
+#        - "twilio": Twilio
+#        - "webrtc": Direct WebRTC
+#
+# Key Benefits:
+#     - Transport Agnostic: Write bot logic once, run it with different transports
+#     - Flexible Testing: Switch between transport layers via command-line arguments
+#     - Standardized Pattern: Follows Pipecat's foundational example structure
+#
+# Note:
+#     This utility is primarily intended for local development and testing. Use it to
+#     prototype and validate your Pipecat bots before setting up production infrastructure.
+
 
 if __name__ == "__main__":
     from pipecat.examples.run import main
