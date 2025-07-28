@@ -97,4 +97,5 @@ if __name__ == "__main__":
     #     This utility is primarily intended for local development and testing. Use it to
     #     prototype and validate your Pipecat bots before setting up production infrastructure.
     from pipecat.examples.run import main
+    logger.info("Starting the bot")
     main(run_example, transport_params=transport_params)
