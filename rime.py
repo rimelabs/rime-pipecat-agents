@@ -8,7 +8,7 @@ from typing import Dict, Callable
 
 import aiofiles
 from dotenv import load_dotenv
-
+from pipecat.audio.vad.silero import SileroVADAnalyzer
 from pipecat.frames.frames import EndFrame, TTSSpeakFrame
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.runner import PipelineRunner
@@ -30,17 +30,20 @@ load_dotenv(override=True)
 # Transport configuration mapping
 # Each transport is defined as a lambda to avoid premature instantiation
 transport_params: Dict[str, Callable[[], TransportParams]] = {
-    "daily": lambda: DailyParams(audio_out_enabled=True),
-    "twilio": lambda: FastAPIWebsocketParams(audio_out_enabled=True),
-    "webrtc": lambda: TransportParams(audio_out_enabled=True, audio_in_enabled=True),
+    "daily": lambda: DailyParams(
+        audio_in_enabled=True, audio_out_enabled=True, vad_analyzer=SileroVADAnalyzer()
+    ),
+    "twilio": lambda: FastAPIWebsocketParams(
+        audio_in_enabled=True, audio_out_enabled=True, vad_analyzer=SileroVADAnalyzer()
+    ),
+    "webrtc": lambda: TransportParams(
+        audio_in_enabled=True, audio_out_enabled=True, vad_analyzer=SileroVADAnalyzer()
+    ),
 }
 
 
 async def save_audio_file(
-    audio: bytes,
-    filename: str,
-    sample_rate: int,
-    num_channels: int
+    audio: bytes, filename: str, sample_rate: int, num_channels: int
 ) -> None:
     """
     Save audio data to a WAV file.
@@ -73,9 +76,7 @@ async def save_audio_file(
 
 
 async def run_example(
-    transport: BaseTransport,
-    args: argparse.Namespace,
-    handle_sigint: bool
+    transport: BaseTransport, args: argparse.Namespace, handle_sigint: bool
 ) -> None:
     """
     Run the Rime TTS bot example.
@@ -94,13 +95,16 @@ async def run_example(
     logger.info("Starting Rime TTS bot example")
 
     # Initialize Rime TTS service
-    api_key = os.getenv("RIME_API_KEY")
-    if not api_key:
+    rime_api_key = os.getenv("RIME_API_KEY")
+    deepgram_api_key = os.getenv("DEEPGRAM_API_KEY")
+    if not rime_api_key:
         raise ValueError("RIME_API_KEY environment variable not set")
+    if not deepgram_api_key:
+        raise ValueError("DEEPGRAM_API_KEY environment variable not set")
 
     logger.info("Initializing Rime TTS service")
     tts = RimeTTSService(
-        api_key=api_key,
+        api_key=rime_api_key,
         voice_id="rex",
         model="mistv2",
         url="wss://users.rime.ai/ws2",
@@ -109,8 +113,8 @@ async def run_example(
             speed_alpha=1.0,
             reduce_latency=False,
             pause_between_brackets=True,
-            phonemize_between_brackets=False
-        )
+            phonemize_between_brackets=False,
+        ),
     )
 
     # Initialize audio buffer for recording
@@ -120,18 +124,11 @@ async def run_example(
     # Pipeline is the actual chain of frame processors (like TTS, LLM, STT services) connected in sequence
     # PipelineTask is the central orchestrator that manages pipeline execution, frame routing, and lifecycle events
     pipeline_params = PipelineParams(
-        enable_metrics=True,
-        enable_usage_metrics=True
-    )
+        enable_metrics=True, enable_usage_metrics=True)
 
     task = PipelineTask(
-        Pipeline([
-            transport.input(),
-            tts,
-            transport.output(),
-            audiobuffer
-        ]),
-        params=pipeline_params
+        Pipeline([transport.input(), tts, transport.output(), audiobuffer]),
+        params=pipeline_params,
     )
 
     # Handle client connection events
@@ -141,13 +138,15 @@ async def run_example(
         """Handle new client connections by starting recording and sending welcome messages."""
         if args.record:
             await audiobuffer.start_recording()
-        await task.queue_frames([
-            TTSSpeakFrame(
-                "Welcome! This is a demonstration of Rime's Text-to-Speech capabilities. "
-                "The voice you're hearing is generated in real-time using advanced AI technology."
-            ),
-            EndFrame()
-        ])
+        await task.queue_frames(
+            [
+                TTSSpeakFrame(
+                    "Welcome! This is a demonstration of Rime's Text-to-Speech capabilities. "
+                    "The voice you're hearing is generated in real-time using advanced AI technology."
+                ),
+                EndFrame(),
+            ]
+        )
 
     # Handle audio recording - Handler for separate tracks
     @audiobuffer.event_handler("on_track_audio_data")
@@ -180,9 +179,11 @@ async def run_example(
 if __name__ == "__main__":
     # Import standard utility for running example bot scripts in the Pipecat framework
     from pipecat.examples.run import main
+
     parser = argparse.ArgumentParser()
-    parser.add_argument('--record', action='store_true',
-                        default=False, help='Enable audio recording')
+    parser.add_argument(
+        "--record", action="store_true", default=False, help="Enable audio recording"
+    )
     logger.info("Starting the bot")
 
     # Pipecat Examples Runner Utility
