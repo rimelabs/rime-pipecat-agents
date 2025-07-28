@@ -7,7 +7,7 @@ from pipecat.transports.services.daily import DailyParams
 from pipecat.transports.network.fastapi_websocket import FastAPIWebsocketParams
 from pipecat.transports.base_transport import BaseTransport, TransportParams
 from pipecat.services.rime.tts import RimeTTSService
-from pipecat.pipeline.task import PipelineTask
+from pipecat.pipeline.task import PipelineTask, PipelineParams
 from pipecat.pipeline.runner import PipelineRunner
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.frames.frames import EndFrame, TTSSpeakFrame
@@ -53,7 +53,9 @@ async def run_example(transport: BaseTransport, _: argparse.Namespace, handle_si
     logger.info("pipeline Setup")
     # PipelineTask is the central orchestrator that manages pipeline execution, frame routing, and lifecycle events
     # Pipeline is the actual chain of frame processors (like TTS, LLM, STT services) connected in sequence
-    task = PipelineTask(Pipeline([tts, transport.output()]))
+    params = PipelineParams(enable_metrics=True,
+                            enable_usage_metrics=True)
+    task = PipelineTask(Pipeline([tts, transport.output()]), params=params)
 
     # Register an event handler so we can play the audio when the client joins
     @transport.event_handler("on_client_connected")
