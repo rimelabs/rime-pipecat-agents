@@ -9,7 +9,6 @@ from typing import Dict, Callable
 import aiofiles
 from dotenv import load_dotenv
 
-from pipecat.frames.frames import EndFrame, TTSSpeakFrame
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.runner import PipelineRunner
 from pipecat.pipeline.task import PipelineParams, PipelineTask
@@ -19,6 +18,10 @@ from pipecat.transcriptions.language import Language
 from pipecat.transports.base_transport import BaseTransport, TransportParams
 from pipecat.transports.network.fastapi_websocket import FastAPIWebsocketParams
 from pipecat.transports.services.daily import DailyParams
+from pipecat.services.deepgram.stt import DeepgramSTTService
+from pipecat.services.openai.llm import OpenAILLMService
+from pipecat.processors.aggregators.openai_llm_context import OpenAILLMContext
+
 
 # Configure logging
 logger = logging.getLogger("rime-pipecat")
@@ -90,13 +93,44 @@ async def run_example(
         logger.info("Starting Rime TTS bot example")
 
         # Initialize Rime TTS service
-        api_key = os.getenv("RIME_API_KEY")
-        if not api_key:
+        rime_api_key = os.getenv("RIME_API_KEY")
+        if not rime_api_key:
             raise ValueError("RIME_API_KEY environment variable not set")
+        deepgram_api_key = os.getenv("DEEPGRAM_API_KEY")
+        if not deepgram_api_key:
+            raise ValueError("DEEPGRAM_API_KEY environment variable not set")
+        openai_api_key = os.getenv("OPENAI_API_KEY")
+        if not openai_api_key:
+            raise ValueError("OPENAI_API_KEY environment variable not set")
+
+        logger.info("Initializing Deepgram STT service")
+        stt = DeepgramSTTService(
+            api_key=os.getenv("DEEPGRAM_API_KEY"), audio_passthrough=True
+        )
+
+        logger.info("Initializing OpenAI LLM service")
+        llm = OpenAILLMService(
+            model="gpt-4o",
+            api_key=os.getenv("OPENAI_API_KEY"),
+            params=OpenAILLMService.InputParams(
+                temperature=0.7,
+            ),
+        )
+
+        context = OpenAILLMContext(
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a helpful assistant. Keep responses concise.",
+                }
+            ],
+        )
+
+        context_aggregator = llm.create_context_aggregator(context)
 
         logger.info("Initializing Rime TTS service")
         tts = RimeTTSService(
-            api_key=api_key,
+            api_key=rime_api_key,
             voice_id="rex",
             model="mistv2",
             url="wss://users.rime.ai/ws2",
@@ -117,7 +151,18 @@ async def run_example(
             enable_metrics=True, enable_usage_metrics=True)
 
         task = PipelineTask(
-            Pipeline([transport.input(), tts, transport.output(), audiobuffer]),
+            Pipeline(
+                [
+                    transport.input(),
+                    stt,
+                    context_aggregator.user(),
+                    llm,
+                    tts,
+                    transport.output(),
+                    audiobuffer,
+                    context_aggregator.assistant(),
+                ]
+            ),
             params=pipeline_params,
         )
 
@@ -127,35 +172,22 @@ async def run_example(
             """Handle new client connections by starting recording and sending welcome messages."""
             if args.record:
                 await audiobuffer.start_recording()
-            await task.queue_frames(
-                [
-                    TTSSpeakFrame(
-                        "Welcome! This is a demonstration of Rime's Text-to-Speech capabilities. "
-                        "The voice you're hearing is generated in real-time using advanced AI technology."
-                    ),
-                    EndFrame(),
-                ]
-            )
+            logger.info(f"Client connected")
+            # Start conversation - empty prompt to let LLM follow system instructions
+            await task.queue_frames([context_aggregator.user().get_context_frame()])
 
-        # Handle audio recording - Handler for separate tracks
-        @audiobuffer.event_handler("on_track_audio_data")
-        async def on_track_audio_data(
-            buffer,
-            user_audio,
-            bot_audio,
-            sample_rate,
-            num_channels,
-        ) -> None:
-            """Save bot's audio output to a WAV file."""
-            if not args.record:
-                return
+        @transport.event_handler("on_client_disconnected")
+        async def on_client_disconnected(transport, client):
+            logger.info(f"Client disconnected")
+            await task.cancel()
 
+        # Handler for merged audio
+        @audiobuffer.event_handler("on_audio_data")
+        async def on_audio_data(buffer, audio, sample_rate, num_channels):
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"recordings/merged_{timestamp}.wav"
             os.makedirs("recordings", exist_ok=True)
-
-            # Save bot audio
-            bot_filename = f"recordings/bot_{timestamp}.wav"
-            await save_audio_file(bot_audio, bot_filename, sample_rate, 1)
+            await save_audio_file(audio, filename, sample_rate, num_channels)
 
         # Run the pipeline
         runner = PipelineRunner(handle_sigint=handle_sigint)
