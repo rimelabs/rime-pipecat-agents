@@ -37,10 +37,7 @@ transport_params: Dict[str, Callable[[], TransportParams]] = {
 
 
 async def save_audio_file(
-    audio: bytes,
-    filename: str,
-    sample_rate: int,
-    num_channels: int
+    audio: bytes, filename: str, sample_rate: int, num_channels: int
 ) -> None:
     """
     Save audio data to a WAV file.
@@ -73,9 +70,7 @@ async def save_audio_file(
 
 
 async def run_example(
-    transport: BaseTransport,
-    args: argparse.Namespace,
-    handle_sigint: bool
+    transport: BaseTransport, args: argparse.Namespace, handle_sigint: bool
 ) -> None:
     """
     Run the Rime TTS bot example.
@@ -91,98 +86,99 @@ async def run_example(
         args: Command line arguments containing record flag
         handle_sigint: Whether to handle interrupt signals
     """
-    logger.info("Starting Rime TTS bot example")
+    try:
+        logger.info("Starting Rime TTS bot example")
 
-    # Initialize Rime TTS service
-    api_key = os.getenv("RIME_API_KEY")
-    if not api_key:
-        raise ValueError("RIME_API_KEY environment variable not set")
+        # Initialize Rime TTS service
+        api_key = os.getenv("RIME_API_KEY")
+        if not api_key:
+            raise ValueError("RIME_API_KEY environment variable not set")
 
-    logger.info("Initializing Rime TTS service")
-    tts = RimeTTSService(
-        api_key=api_key,
-        voice_id="rex",
-        model="mistv2",
-        url="wss://users.rime.ai/ws2",
-        params=RimeTTSService.InputParams(
-            language=Language.EN,
-            speed_alpha=1.0,
-            reduce_latency=False,
-            pause_between_brackets=True,
-            phonemize_between_brackets=False
-        )
-    )
-
-    # Initialize audio buffer for recording
-    audiobuffer = AudioBufferProcessor()
-
-    # Set up the pipeline
-    # Pipeline is the actual chain of frame processors (like TTS, LLM, STT services) connected in sequence
-    # PipelineTask is the central orchestrator that manages pipeline execution, frame routing, and lifecycle events
-    pipeline_params = PipelineParams(
-        enable_metrics=True,
-        enable_usage_metrics=True
-    )
-
-    task = PipelineTask(
-        Pipeline([
-            transport.input(),
-            tts,
-            transport.output(),
-            audiobuffer
-        ]),
-        params=pipeline_params
-    )
-
-    # Handle client connection events
-    # The queue_frames() method allows you to inject frames into the pipeline for processing
-    @transport.event_handler("on_client_connected")
-    async def on_client_connected(transport, client) -> None:
-        """Handle new client connections by starting recording and sending welcome messages."""
-        if args.record:
-            await audiobuffer.start_recording()
-        await task.queue_frames([
-            TTSSpeakFrame(
-                "Welcome! This is a demonstration of Rime's Text-to-Speech capabilities. "
-                "The voice you're hearing is generated in real-time using advanced AI technology."
+        logger.info("Initializing Rime TTS service")
+        tts = RimeTTSService(
+            api_key=api_key,
+            voice_id="rex",
+            model="mistv2",
+            url="wss://users.rime.ai/ws2",
+            params=RimeTTSService.InputParams(
+                language=Language.EN,
+                speed_alpha=1.0,
+                reduce_latency=False,
+                pause_between_brackets=True,
+                phonemize_between_brackets=False,
             ),
-            EndFrame()
-        ])
+        )
 
-    # Handle audio recording - Handler for separate tracks
-    @audiobuffer.event_handler("on_track_audio_data")
-    async def on_track_audio_data(
-        buffer,
-        user_audio,
-        bot_audio,
-        sample_rate,
-        num_channels,
-    ) -> None:
-        """Save bot's audio output to a WAV file."""
-        if not args.record:
-            return
+        # Initialize audio buffer for recording
+        audiobuffer = AudioBufferProcessor()
 
-        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        os.makedirs("recordings", exist_ok=True)
+        # Set up the pipeline
+        # Pipeline is the actual chain of frame processors (like TTS, LLM, STT services) connected in sequence
+        # PipelineTask is the central orchestrator that manages pipeline execution, frame routing, and lifecycle events
+        pipeline_params = PipelineParams(
+            enable_metrics=True, enable_usage_metrics=True)
 
-        # Save bot audio
-        bot_filename = f"recordings/bot_{timestamp}.wav"
-        await save_audio_file(bot_audio, bot_filename, sample_rate, 1)
+        task = PipelineTask(
+            Pipeline([transport.input(), tts, transport.output(), audiobuffer]),
+            params=pipeline_params,
+        )
 
-    # PipelineRunner is the high-level execution manager that runs pipeline tasks
-    # with lifecycle and signal handling. The handle_sigint parameter controls whether
-    # PipelineRunner automatically handles system interrupt signals (SIGINT and SIGTERM)
-    # for graceful shutdown and resource cleanup
-    runner = PipelineRunner(handle_sigint=handle_sigint)
-    await runner.run(task)
+        # Handle client connection events
+        # The queue_frames() method allows you to inject frames into the pipeline for processing
+        @transport.event_handler("on_client_connected")
+        async def on_client_connected(transport, client) -> None:
+            """Handle new client connections by starting recording and sending welcome messages."""
+            if args.record:
+                await audiobuffer.start_recording()
+            await task.queue_frames(
+                [
+                    TTSSpeakFrame(
+                        "Welcome! This is a demonstration of Rime's Text-to-Speech capabilities. "
+                        "The voice you're hearing is generated in real-time using advanced AI technology."
+                    ),
+                    EndFrame(),
+                ]
+            )
+
+        # Handle audio recording - Handler for separate tracks
+        @audiobuffer.event_handler("on_track_audio_data")
+        async def on_track_audio_data(
+            buffer,
+            user_audio,
+            bot_audio,
+            sample_rate,
+            num_channels,
+        ) -> None:
+            """Save bot's audio output to a WAV file."""
+            if not args.record:
+                return
+
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            os.makedirs("recordings", exist_ok=True)
+
+            # Save bot audio
+            bot_filename = f"recordings/bot_{timestamp}.wav"
+            await save_audio_file(bot_audio, bot_filename, sample_rate, 1)
+
+        # PipelineRunner is the high-level execution manager that runs pipeline tasks
+        # with lifecycle and signal handling. The handle_sigint parameter controls whether
+        # PipelineRunner automatically handles system interrupt signals (SIGINT and SIGTERM)
+        # for graceful shutdown and resource cleanup
+        runner = PipelineRunner(handle_sigint=handle_sigint)
+        await runner.run(task)
+    except Exception as e:
+        logger.error("Error in run_example: %s", str(e))
+        raise  # Re-raise the exception to ensure the caller knows about the failure
 
 
 if __name__ == "__main__":
     # Import standard utility for running example bot scripts in the Pipecat framework
     from pipecat.examples.run import main
+
     parser = argparse.ArgumentParser()
-    parser.add_argument('--record', action='store_true',
-                        default=False, help='Enable audio recording')
+    parser.add_argument(
+        "--record", action="store_true", default=False, help="Enable audio recording"
+    )
     logger.info("Starting the bot")
 
     # Pipecat Examples Runner Utility
