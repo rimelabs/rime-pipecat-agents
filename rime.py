@@ -176,35 +176,36 @@ async def run_example(
     runner = PipelineRunner(handle_sigint=handle_sigint)
     await runner.run(task)
 
-# Pipecat Examples Runner Utility
-# -----------------------------
-#
-# A standardized utility for running example bot scripts in the Pipecat framework. This utility
-# enables developers to build and test their bots using consistent patterns across different
-# transport layers.
-#
-# Usage:
-#     The main function accepts two parameters:
-#     1. run_example: Your bot's main execution function
-#     2. transport_params: A dictionary defining available transports:
-#        - "daily": Daily.co WebRTC
-#        - "twilio": Twilio
-#        - "webrtc": Direct WebRTC
-#
-# Key Benefits:
-#     - Transport Agnostic: Write bot logic once, run it with different transports
-#     - Flexible Testing: Switch between transport layers via command-line arguments
-#     - Standardized Pattern: Follows Pipecat's foundational example structure
-#
-# Note:
-#     This utility is primarily intended for local development and testing. Use it to
-#     prototype and validate your Pipecat bots before setting up production infrastructure.
-
 
 if __name__ == "__main__":
+    # Import standard utility for running example bot scripts in the Pipecat framework
     from pipecat.examples.run import main
     parser = argparse.ArgumentParser()
     parser.add_argument('--record', action='store_true',
                         default=False, help='Enable audio recording')
     logger.info("Starting the bot")
+
+    # Pipecat Examples Runner Utility
+    # -----------------------------
+    #
+    # A standardized utility for running example bot scripts in the Pipecat framework. This utility
+    # enables developers to build and test their bots using consistent patterns across different
+    # transport layers.
+    #
+    # Usage:
+    #     The main function accepts two parameters:
+    #     1. run_example: Your bot's main execution function
+    #     2. transport_params: A dictionary defining available transports:
+    #        - "daily": Daily.co WebRTC
+    #        - "twilio": Twilio
+    #        - "webrtc": Direct WebRTC
+    #
+    # Key Benefits:
+    #     - Transport Agnostic: Write bot logic once, run it with different transports
+    #     - Flexible Testing: Switch between transport layers via command-line arguments
+    #     - Standardized Pattern: Follows Pipecat's foundational example structure
+    #
+    # Note:
+    #     This utility is primarily intended for local development and testing. Use it to
+    #     prototype and validate your Pipecat bots before setting up production infrastructure.
     main(run_example, transport_params=transport_params, parser=parser)
