@@ -31,7 +31,7 @@ transport_params = {
 
 
 async def run_example(transport: BaseTransport, _: argparse.Namespace, handle_sigint: bool):
-    logger.info(f"Starting bot")
+    logger.info("Starting a bot that says one thing")
 
     tts = CartesiaTTSService(
         api_key=os.getenv("CARTESIA_API_KEY"),
