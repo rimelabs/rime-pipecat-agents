@@ -132,7 +132,7 @@ async def run_example(
             messages=[
                 {
                     "role": "system",
-                    "content": "You are a helpful assistant. Keep responses concise. and dont give output in markdown format.",
+                    "content": "You are a helpful voice ai assistant. Keep responses concise. Interact with the user in a friendly and engaging manner. and as if your talking to some one ",
                 }
             ],
         )
@@ -142,7 +142,7 @@ async def run_example(
         logger.info("Initializing Rime TTS service")
         tts = RimeTTSService(
             api_key=rime_api_key,
-            voice_id="willow",
+            voice_id="glacier",
             model="mistv2",
             url="wss://users.rime.ai/ws2",
             params=RimeTTSService.InputParams(
