@@ -132,24 +132,29 @@ async def run_example(
             enable_metrics=True, enable_usage_metrics=True)
 
         task = PipelineTask(
-            Pipeline([transport.input(), rtvi, tts,
+            Pipeline([transport.input(), tts, rtvi,
                      transport.output(), audiobuffer]),
             params=pipeline_params,
+            enable_tracing=True,
+            enable_turn_tracking=True,
         )
-        rtvi_observer = RTVIObserver(rtvi)
-        task.add_observer(rtvi_observer)
 
         # Handle client connection events
         # The queue_frames() method allows you to inject frames into the pipeline for processing
+
         @transport.event_handler("on_client_connected")
         async def on_client_connected(transport, client) -> None:
             """Handle new client connections by starting recording and sending welcome messages."""
             if args.record:
                 await audiobuffer.start_recording()
-            await task.queue_frames([
-                TTSSpeakFrame(text_to_use),
-                EndFrame(),
-            ])
+            rtvi_observer = RTVIObserver(rtvi)
+            task.add_observer(rtvi_observer)
+            await task.queue_frames(
+                [
+                    TTSSpeakFrame(text_to_use),
+                    EndFrame(),
+                ]
+            )
 
         # Handle audio recording - Handler for separate tracks
         @audiobuffer.event_handler("on_track_audio_data")
@@ -191,9 +196,9 @@ if __name__ == "__main__":
             return None
         if not os.path.isfile(filepath):
             raise ValueError(f"File not found: {filepath}")
-        if not filepath.endswith('.txt'):
+        if not filepath.endswith(".txt"):
             raise ValueError(f"File must be a .txt file: {filepath}")
-        with open(filepath, 'r') as file:
+        with open(filepath, "r") as file:
             return file.read().strip()
 
     parser = argparse.ArgumentParser()
@@ -201,7 +206,9 @@ if __name__ == "__main__":
         "--record", action="store_true", default=False, help="Enable audio recording"
     )
     parser.add_argument(
-        "--textfile", type=validate_text_file, help="Path to a text file to replace the default text"
+        "--textfile",
+        type=validate_text_file,
+        help="Path to a text file to replace the default text",
     )
 
     logger.info("Starting the bot")
