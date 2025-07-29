@@ -22,9 +22,6 @@ If you want an example where you can pass text and test Rime audio, you can look
 <img width="1393" height="142" alt="image" src="https://github.com/user-attachments/assets/683b6ff7-41e5-411c-80c4-511171f73ea8" />
 
 
-
-*Note: Replace the placeholder image path with the actual image path once available.*
-
 ## Setup Instructions
 
 ### Installation
