@@ -22,6 +22,7 @@ from pipecat.services.deepgram.stt import DeepgramSTTService
 from pipecat.services.openai.llm import OpenAILLMService
 from pipecat.processors.aggregators.openai_llm_context import OpenAILLMContext
 from pipecat.audio.vad.silero import SileroVADAnalyzer
+from pipecat.processors.frameworks.rtvi import RTVIProcessor, RTVIObserver
 
 
 # Configure logging
@@ -104,6 +105,8 @@ async def run_example(
     """
     try:
         logger.info("Starting Rime TTS bot example")
+        rtvi_processor = RTVIProcessor()
+        rtvi_observer = RTVIObserver(rtvi_processor)
 
         # Initialize Rime TTS service
         rime_api_key = os.getenv("RIME_API_KEY")
@@ -171,12 +174,15 @@ async def run_example(
                     context_aggregator.user(),
                     llm,
                     tts,
+                    rtvi_processor,  # Add this line
                     transport.output(),
                     audiobuffer,
                     context_aggregator.assistant(),
                 ]
             ),
             params=pipeline_params,
+            enable_tracing=True,
+            enable_turn_tracking=True,
         )
 
         # Handle client connection events
@@ -186,6 +192,8 @@ async def run_example(
             if args.record:
                 await audiobuffer.start_recording()
             logger.info("Client connected")
+            task.add_observer(rtvi_observer)
+
             # Start conversation - empty prompt to let LLM follow system instructions
 
         @transport.event_handler("on_client_disconnected")
