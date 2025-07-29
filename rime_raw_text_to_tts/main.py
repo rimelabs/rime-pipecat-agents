@@ -19,6 +19,7 @@ from pipecat.transcriptions.language import Language
 from pipecat.transports.base_transport import BaseTransport, TransportParams
 from pipecat.transports.network.fastapi_websocket import FastAPIWebsocketParams
 from pipecat.transports.services.daily import DailyParams
+from pipecat.processors.frameworks.rtvi import RTVIProcessor, RTVIObserver
 
 # Configure logging
 logger = logging.getLogger("rime-pipecat")
@@ -89,6 +90,9 @@ async def run_example(
     try:
         logger.info("Starting Rime TTS bot example")
 
+        # Initialize RTVI processor
+        rtvi = RTVIProcessor()
+
         # Initialize Rime TTS service
         api_key = os.getenv("RIME_API_KEY")
         if not api_key:
@@ -128,9 +132,12 @@ async def run_example(
             enable_metrics=True, enable_usage_metrics=True)
 
         task = PipelineTask(
-            Pipeline([transport.input(), tts, transport.output(), audiobuffer]),
+            Pipeline([transport.input(), rtvi, tts,
+                     transport.output(), audiobuffer]),
             params=pipeline_params,
         )
+        rtvi_observer = RTVIObserver(rtvi)
+        task.add_observer(rtvi_observer)
 
         # Handle client connection events
         # The queue_frames() method allows you to inject frames into the pipeline for processing
