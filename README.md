@@ -19,7 +19,8 @@ If you want an example where you can pass text and test Rime audio, you can look
 
 ## Architecture Diagram
 
-![Architecture Diagram](path/to/placeholder-image.png)
+<img width="1654" height="155" alt="image" src="https://github.com/user-attachments/assets/ac791f62-1083-4bf2-8f57-028a4ea1c12e" />
+
 
 *Note: Replace the placeholder image path with the actual image path once available.*
 
