@@ -10,21 +10,24 @@ To understand Pipecat's core architecture, you can read more [here](https://docs
 
 ## Setup Instructions
 
-1. Clone this repository:
+1. **Navigate to the project directory:**
    ```bash
-   git clone git@github.com:rimelabs/pipecat-rime-internal-testing-script.git
-   # or
-   git clone https://github.com/rimelabs/pipecat-rime-internal-testing-script.git
+   cd rime_raw_text_to_tts
    ```
 
-2. Set up the `.env` file and add `RIME_API_KEY` to it. You can obtain the API key from [here](https://app.rime.ai/tokens/).
+2. **Set up the `.env` file:** Add `RIME_API_KEY` to it. You can obtain the API key from [here](https://app.rime.ai/tokens/).
 
-3. Set up a virtual environment:
+3. **Create a virtual environment:**
    ```bash
    python -m venv venv
    ```
 
-4. Install all packages:
+4. **Activate the virtual environment:**
+   ```bash
+   source venv/bin/activate
+   ```
+
+5. **Install the required packages:**
    ```bash
    pip install -r requirements.txt
    ```
@@ -33,30 +36,48 @@ To understand Pipecat's core architecture, you can read more [here](https://docs
 
 To start the script with different transport options:
 
-- **WebRTC (default)**:
+- **WebRTC (default):**
   ```bash
-  python3 rime.py
+  python3 main.py
   ```
   or
   ```bash
-  python3 rime.py --transport webrtc
+  python3 main.py --transport webrtc
   ```
 
-- **Twilio**:
+- **Twilio:**
   ```bash
-  python3 rime.py --transport twilio
+  python3 main.py --transport twilio
   ```
-  Note: Specific parameters are required to make Twilio work.
+  *Note: Specific parameters are required to make Twilio work.*
 
-- **Daily**:
+- **Daily:**
   ```bash
-  python3 rime.py --transport daily
+  python3 main.py --transport daily
   ```
-  Note: Specific parameters are required to make Daily work.
+  *Note: Specific parameters are required to make Daily work.*
 
 To record the bot's audio and store it in the recordings folder:
 ```bash
-python3 rime.py --record
+python3 main.py --record
+```
+
+To use a custom text file instead of the default welcome message:
+```bash
+python3 main.py --textfile path/to/your/text.txt
+```
+*Note: The file must be a .txt file and contain the text you want to convert to speech. Use paths relative to the script directory, for example:*
+```bash
+# If your text file is in the same directory:
+python3 main.py --textfile text.txt
+
+# If your text file is in a subdirectory:
+python3 main.py --textfile data/speech.txt
+```
+
+You can combine multiple options:
+```bash
+python3 main.py --transport daily --record --textfile my_speech.txt
 ```
 
 

@@ -83,7 +83,7 @@ async def run_example(
 
     Args:
         transport: The transport layer to use (Daily, Twilio, or WebRTC)
-        args: Command line arguments containing record flag
+        args: Command line arguments containing record flag and text content
         handle_sigint: Whether to handle interrupt signals
     """
     try:
@@ -109,6 +109,15 @@ async def run_example(
             ),
         )
 
+        # Default text
+        default_text = (
+            "Welcome! This is a demonstration of Rime's Text-to-Speech capabilities. "
+            "The voice you're hearing is generated in real-time using advanced AI technology."
+        )
+
+        # Use text from file if available
+        text_to_use = args.textfile if args.textfile is not None else default_text
+
         # Initialize audio buffer for recording
         audiobuffer = AudioBufferProcessor()
 
@@ -130,15 +139,10 @@ async def run_example(
             """Handle new client connections by starting recording and sending welcome messages."""
             if args.record:
                 await audiobuffer.start_recording()
-            await task.queue_frames(
-                [
-                    TTSSpeakFrame(
-                        "Welcome! This is a demonstration of Rime's Text-to-Speech capabilities. "
-                        "The voice you're hearing is generated in real-time using advanced AI technology."
-                    ),
-                    EndFrame(),
-                ]
-            )
+            await task.queue_frames([
+                TTSSpeakFrame(text_to_use),
+                EndFrame(),
+            ])
 
         # Handle audio recording - Handler for separate tracks
         @audiobuffer.event_handler("on_track_audio_data")
@@ -175,10 +179,24 @@ if __name__ == "__main__":
     # Import standard utility for running example bot scripts in the Pipecat framework
     from pipecat.examples.run import main
 
+    def validate_text_file(filepath):
+        if not filepath:
+            return None
+        if not os.path.isfile(filepath):
+            raise ValueError(f"File not found: {filepath}")
+        if not filepath.endswith('.txt'):
+            raise ValueError(f"File must be a .txt file: {filepath}")
+        with open(filepath, 'r') as file:
+            return file.read().strip()
+
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--record", action="store_true", default=False, help="Enable audio recording"
     )
+    parser.add_argument(
+        "--textfile", type=validate_text_file, help="Path to a text file to replace the default text"
+    )
+
     logger.info("Starting the bot")
 
     # Pipecat Examples Runner Utility
