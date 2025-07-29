@@ -19,3 +19,65 @@ This project is a Rime Pipecat hosted agent demonstrating the SST -> LLM -> TTS 
 
 *Note: Replace the placeholder image path with the actual image path once available.*
 
+## Setup Instructions
+
+### Installation
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/rimelabs/Rime-pipecate-agents.git
+   # or
+   git clone git@github.com:rimelabs/Rime-pipecate-agents.git
+   cd Rime-pipecate-agents
+   ```
+
+2. **Set up the environment file**:
+   ```bash
+   touch .env
+   ```
+
+   Add the following keys to the `.env` file:
+   - `RIME_API_KEY`: Obtain from [Rime](https://app.rime.ai/tokens/)
+   - `DEEPGRAM_API_KEY`: Obtain from [Deepgram](https://console.deepgram.com/project)
+   - `OPENAI_API_KEY`: Obtain from [OpenAI](https://platform.openai.com/settings/organization/api-keys)
+
+3. **Set up a virtual environment**:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate
+   ```
+
+4. **Install the required packages**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+## Usage Instructions
+
+To start the script with different transport options:
+
+- **WebRTC (default):**
+  ```bash
+  python3 rime_agent.py
+  ```
+  or
+  ```bash
+  python3 rime_agent.py --transport webrtc
+  ```
+
+- **Twilio:**
+  ```bash
+  python3 rime_agent.py --transport twilio
+  ```
+  *Note: Specific parameters are required to make Twilio work.*
+
+- **Daily:**
+  ```bash
+  python3 rime_agent.py --transport daily
+  ```
+  *Note: Specific parameters are required to make Daily work.*
+
+To record the conversation and share it with others, add the `--record` parameter:
+```bash
+python3 rime_agent.py --record
+```
