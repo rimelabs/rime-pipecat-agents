@@ -62,6 +62,24 @@ To record the bot's audio and store it in the recordings folder:
 python3 main.py --record
 ```
 
+To use a custom text file instead of the default welcome message:
+```bash
+python3 main.py --textfile path/to/your/text.txt
+```
+*Note: The file must be a .txt file and contain the text you want to convert to speech. Use paths relative to the script directory, for example:*
+```bash
+# If your text file is in the same directory:
+python3 main.py --textfile text.txt
+
+# If your text file is in a subdirectory:
+python3 main.py --textfile data/speech.txt
+```
+
+You can combine multiple options:
+```bash
+python3 main.py --transport daily --record --textfile my_speech.txt
+```
+
 
 
 
