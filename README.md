@@ -84,3 +84,7 @@ To record the conversation and share it with others, add the `--record` paramete
 ```bash
 python3 rime_agent.py --record
 ```
+
+## Important Note
+
+The script provided is intended for local use only and should not be used in production. Once you decide to share it with the world, you can explore deployment patterns in Pipecat by visiting [this guide](https://docs.pipecat.ai/guides/deployment/overview).
