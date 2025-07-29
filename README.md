@@ -1,0 +1,87 @@
+# Rime Pipecat Agent (SST -> LLM -> TTS)
+
+This project is a Rime Pipecat hosted agent demonstrating the SST -> LLM -> TTS implementation using Pipecat. It enables voice chat with the agent, allowing for back-and-forth communication. The project supports three major transport layers provided by Pipecat: Twilio, Daily, and SimpleWebRTC. The architecture is designed to allow seamless switching between these transport options without altering the internal structure of the application.
+
+## Note
+
+If you want an example where you can pass text and test Rime audio, you can look into the `rime_raw_text_to_tts` folder.
+
+## Default Configuration
+
+- The script is configured to start with SimpleWebRTC by default.
+- To use Daily and Twilio, provide the appropriate parameters and set up the necessary configurations.
+
+## Additional Resources
+
+- To understand Pipecat's core architecture, read more [here](https://docs.pipecat.ai/getting-started/core-concepts).
+- For a deeper dive into the fundamentals, check out [this guide](https://docs.pipecat.ai/guides/fundamentals).
+- To explore all available transport options provided by Pipecat, look [here](https://docs.pipecat.ai/server/services/transport/daily).
+
+## Architecture Diagram
+
+![Architecture Diagram](path/to/placeholder-image.png)
+
+*Note: Replace the placeholder image path with the actual image path once available.*
+
+## Setup Instructions
+
+### Installation
+
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/rimelabs/Rime-pipecate-agents.git
+   # or
+   git clone git@github.com:rimelabs/Rime-pipecate-agents.git
+   cd Rime-pipecate-agents
+   ```
+
+2. **Set up the environment file**:
+   ```bash
+   touch .env
+   ```
+
+   Add the following keys to the `.env` file:
+   - `RIME_API_KEY`: Obtain from [Rime](https://app.rime.ai/tokens/)
+   - `DEEPGRAM_API_KEY`: Obtain from [Deepgram](https://console.deepgram.com/project)
+   - `OPENAI_API_KEY`: Obtain from [OpenAI](https://platform.openai.com/settings/organization/api-keys)
+
+3. **Set up a virtual environment**:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate
+   ```
+
+4. **Install the required packages**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+## Usage Instructions
+
+To start the script with different transport options:
+
+- **WebRTC (default):**
+  ```bash
+  python3 rime_agent.py
+  ```
+  or
+  ```bash
+  python3 rime_agent.py --transport webrtc
+  ```
+
+- **Twilio:**
+  ```bash
+  python3 rime_agent.py --transport twilio
+  ```
+  *Note: Specific parameters are required to make Twilio work.*
+
+- **Daily:**
+  ```bash
+  python3 rime_agent.py --transport daily
+  ```
+  *Note: Specific parameters are required to make Daily work.*
+
+To record the conversation and share it with others, add the `--record` parameter:
+```bash
+python3 rime_agent.py --record
+```
