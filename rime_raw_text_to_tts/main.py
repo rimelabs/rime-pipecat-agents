@@ -115,12 +115,12 @@ async def run_example(
 
         # Default text
         default_text = (
-            "Welcome! This is a demonstration of Rime's Text-to-Speech capabilities. "
-            "The voice you're hearing is generated in real-time using advanced AI technology."
+            "There's a 2022 Ferrari F8 Tributo with 7,638 miles, a 2018 Ferrari 488 G. T. B. with 9,837 miles, and a 2019 Ferrari G. T. C. 4 Lusso V12 with 17,097 miles."
         )
 
-        # Use text from file if available
-        text_to_use = args.textfile if args.textfile is not None else default_text
+        # Determine which text to use (priority: direct text > text file > default text)
+        text_to_use = args.text if args.text is not None else (
+            args.textfile if args.textfile is not None else default_text)
 
         # Initialize audio buffer for recording
         audiobuffer = AudioBufferProcessor()
@@ -209,6 +209,11 @@ if __name__ == "__main__":
         "--textfile",
         type=validate_text_file,
         help="Path to a text file to replace the default text",
+    )
+    parser.add_argument(
+        "--text",
+        type=str,
+        help="Direct text input to be spoken by the bot",
     )
 
     logger.info("Starting the bot")
