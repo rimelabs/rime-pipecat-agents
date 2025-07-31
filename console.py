@@ -128,8 +128,8 @@ async def run_console_tts(args: argparse.Namespace) -> None:
             await save_audio_file(bot_audio, bot_filename, sample_rate, 1)
 
         # Use task start event to trigger TTS immediately
-        @task.event_handler("on_started")
-        async def on_task_started(task):
+        @task.event_handler("on_pipeline_started")
+        async def on_pipeline_started(task):
             """Start TTS immediately when task starts."""
             logger.info("Task started, beginning TTS playback")
 
