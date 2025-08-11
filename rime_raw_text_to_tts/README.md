@@ -17,19 +17,16 @@ To understand Pipecat's core architecture, you can read more [here](https://docs
 
 2. **Set up the `.env` file:** Add `RIME_API_KEY` to it. You can obtain the API key from [here](https://app.rime.ai/tokens/).
 
-3. **Create a virtual environment:**
+3. **Set up the environment with uv:**
    ```bash
-   python -m venv venv
+   uv sync
    ```
 
-4. **Activate the virtual environment:**
-   ```bash
-   source venv/bin/activate
-   ```
+   This will create a virtual environment and install all dependencies automatically.
 
-5. **Install the required packages:**
+   To activate the virtual environment manually (optional):
    ```bash
-   pip install -r requirements.txt
+   source .venv/bin/activate
    ```
 
 ## Usage Instructions
@@ -38,11 +35,11 @@ To start the script with different transport options:
 
 - **WebRTC (default):**
   ```bash
-  python3 main.py
+  uv run python main.py
   ```
   or
   ```bash
-  python3 main.py --transport webrtc
+  uv run python main.py --transport webrtc
   ```
 
 - **Twilio:**

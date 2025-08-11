@@ -24,6 +24,20 @@ If you want an example where you can pass text and test Rime audio, you can look
 
 ## Setup Instructions
 
+### Prerequisites
+
+**Install uv** (Python package manager):
+```bash
+# macOS/Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Or with pip
+pip install uv
+
+# Or with Homebrew (macOS)
+brew install uv
+```
+
 ### Installation
 
 1. **Clone the repository**:
@@ -31,12 +45,12 @@ If you want an example where you can pass text and test Rime audio, you can look
    git clone https://github.com/rimelabs/Rime-pipecate-agents.git
    # or
    git clone git@github.com:rimelabs/Rime-pipecate-agents.git
-   cd Rime-pipecate-agents
+   cd rime-pipecate-agents
    ```
 
 2. **Set up the environment file**:
    ```bash
-   touch .env
+   cp .env.example .env
    ```
 
    Add the following keys to the `.env` file:
@@ -44,32 +58,55 @@ If you want an example where you can pass text and test Rime audio, you can look
    - `DEEPGRAM_API_KEY`: Obtain from [Deepgram](https://console.deepgram.com/project)
    - `OPENAI_API_KEY`: Obtain from [OpenAI](https://platform.openai.com/settings/organization/api-keys)
 
-3. **Set up a virtual environment**:
+4. **Set up the environment with uv**:
    ```bash
-   python -m venv venv
-   source venv/bin/activate
+   uv sync
    ```
 
-4. **Install the required packages**:
+   This will create a virtual environment and install all dependencies automatically.
+
+   To activate the virtual environment manually (optional):
    ```bash
-   pip install -r requirements.txt
+   source .venv/bin/activate
    ```
+
+### Managing Dependencies
+
+**Add new dependencies**:
+```bash
+uv add package-name
+```
+
+**Add development dependencies**:
+```bash
+uv add --dev package-name
+```
+
+**Update dependencies**:
+```bash
+uv sync --upgrade
+```
+
+**Run commands in the virtual environment**:
+```bash
+uv run python rime_agent.py
+```
 
 ## Usage Instructions
 
 To start the script:
 
   ```bash
-  python3 rime_agent.py
+  uv run python rime_agent.py
   ```
   or
   ```bash
-  python3 rime_agent.py --transport webrtc
+  uv run python rime_agent.py --transport webrtc
   ```
 
 To record the conversation and share it with others, add the `--record` parameter:
 ```bash
-python3 rime_agent.py --record
+uv run python rime_agent.py --record
 ```
 
 ## Important Note
