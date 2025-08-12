@@ -57,9 +57,8 @@ If you want an example where you can pass text and test Rime audio, you can look
 
 ## Usage Instructions
 
-To start the script with different transport options:
+To start the script:
 
-- **WebRTC (default):**
   ```bash
   python3 rime_agent.py
   ```
@@ -67,18 +66,6 @@ To start the script with different transport options:
   ```bash
   python3 rime_agent.py --transport webrtc
   ```
-
-- **Twilio:**
-  ```bash
-  python3 rime_agent.py --transport twilio
-  ```
-  *Note: Specific parameters are required to make Twilio work.*
-
-- **Daily:**
-  ```bash
-  python3 rime_agent.py --transport daily
-  ```
-  *Note: Specific parameters are required to make Daily work.*
 
 To record the conversation and share it with others, add the `--record` parameter:
 ```bash
