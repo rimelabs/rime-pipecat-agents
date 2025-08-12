@@ -32,22 +32,29 @@ logger.setLevel(logging.INFO)
 # Load environment variables
 load_dotenv(override=True)
 
-# Transport configuration mapping
-# Each transport is defined as a lambda to avoid premature instantiation
+RIME_VOICE_ID = "glacier"
+RIME_MODEL = "mistv2"
+RIME_URL = "wss://users.rime.ai/ws2"
+
+RIME_API_KEY = os.getenv("RIME_API_KEY")
+DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+SYSTEM_PROMPT = """
+You are witty, friendly, but professional AI assistant powered by Rime AI, a TTS provider
+with the most realistic voices on the market.
+
+Everything you say will be spoken by a tts model.
+
+You are built using the Pipecat framework, which is a powerful tool for building voice agents.
+"""
+
 transport_params: Dict[str, Callable[[], TransportParams]] = {
-    "daily": lambda: DailyParams(
-        audio_in_enabled=True, audio_out_enabled=True, vad_analyzer=SileroVADAnalyzer()
-    ),
-    "twilio": lambda: FastAPIWebsocketParams(
-        audio_in_enabled=True,
-        audio_out_enabled=True,
-        vad_analyzer=SileroVADAnalyzer(),
-    ),
     "webrtc": lambda: TransportParams(
         audio_in_enabled=True,
         audio_out_enabled=True,
         vad_analyzer=SileroVADAnalyzer(),
-    ),
+    )
 }
 
 
@@ -109,14 +116,11 @@ async def run_example(
         rtvi_observer = RTVIObserver(rtvi_processor)
 
         # Initialize Rime TTS service
-        rime_api_key = os.getenv("RIME_API_KEY")
-        if not rime_api_key:
+        if not RIME_API_KEY:
             raise ValueError("RIME_API_KEY environment variable not set")
-        deepgram_api_key = os.getenv("DEEPGRAM_API_KEY")
-        if not deepgram_api_key:
+        if not DEEPGRAM_API_KEY:
             raise ValueError("DEEPGRAM_API_KEY environment variable not set")
-        openai_api_key = os.getenv("OPENAI_API_KEY")
-        if not openai_api_key:
+        if not OPENAI_API_KEY:
             raise ValueError("OPENAI_API_KEY environment variable not set")
 
         logger.info("Initializing Deepgram STT service")
@@ -137,7 +141,7 @@ async def run_example(
             messages=[
                 {
                     "role": "system",
-                    "content": "You are a helpful voice ai assistant. Keep responses concise. Interact with the user in a friendly and engaging manner. and as if your talking to some one ",
+                    "content": SYSTEM_PROMPT,
                 }
             ],
         )
@@ -146,10 +150,10 @@ async def run_example(
 
         logger.info("Initializing Rime TTS service")
         tts = RimeTTSService(
-            api_key=rime_api_key,
-            voice_id="glacier",
-            model="mistv2",
-            url="wss://users.rime.ai/ws2",
+            api_key=RIME_API_KEY,
+            voice_id=RIME_VOICE_ID,
+            model=RIME_MODEL,
+            url=RIME_URL,
             params=RimeTTSService.InputParams(
                 language=Language.EN,
                 speed_alpha=1.0,
@@ -206,6 +210,9 @@ async def run_example(
         async def on_audio_data(buffer, audio, sample_rate, num_channels):
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"recordings/merged_{timestamp}.wav"
+
+            logger.info("Saving audio to %s", filename)
+
             os.makedirs("recordings", exist_ok=True)
             await save_audio_file(audio, filename, sample_rate, num_channels)
 

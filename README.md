@@ -70,44 +70,21 @@ brew install uv
    source .venv/bin/activate
    ```
 
-### Managing Dependencies
 
-**Add new dependencies**:
-```bash
-uv add package-name
-```
+**Run the Rime Agent Web App Demo**:
 
-**Add development dependencies**:
-```bash
-uv add --dev package-name
-```
-
-**Update dependencies**:
-```bash
-uv sync --upgrade
-```
-
-**Run commands in the virtual environment**:
+Start the agent with
 ```bash
 uv run python rime_agent.py
 ```
+Then open up http://localhost:7860/client/ to chat with the agent through the UI.
 
-## Usage Instructions
-
-To start the script:
-
-  ```bash
-  uv run python rime_agent.py
-  ```
-  or
-  ```bash
-  uv run python rime_agent.py --transport webrtc
-  ```
 
 To record the conversation and share it with others, add the `--record` parameter:
 ```bash
 uv run python rime_agent.py --record
 ```
+Then upon clicking "disconnect" in the UI the conversation will be saved to an audio file in the /recordings directory.
 
 ## Important Note
 
