@@ -65,12 +65,6 @@ brew install uv
 
    This will create a virtual environment and install all dependencies automatically.
 
-   To activate the virtual environment manually (optional):
-   ```bash
-   source .venv/bin/activate
-   ```
-
-
 **Run the Rime Agent Web App Demo**:
 
 Start the agent with
