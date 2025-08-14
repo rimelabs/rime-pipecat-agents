@@ -2,9 +2,6 @@
 
 This project is a Rime Pipecat hosted agent demonstrating the SST -> LLM -> TTS implementation using Pipecat. It enables voice chat with the agent, allowing for back-and-forth communication. The project supports three major transport layers provided by Pipecat: Twilio, Daily, and SimpleWebRTC. The architecture is designed to allow seamless switching between these transport options without altering the internal structure of the application.
 
-## Note
-
-If you want an example where you can pass text and test Rime audio, you can look into the `rime_raw_text_to_tts` folder.
 
 ## Default Configuration
 
@@ -26,7 +23,7 @@ If you want an example where you can pass text and test Rime audio, you can look
 
 ### Prerequisites
 
-**Install uv** (Python package manager):
+1. **Install uv** (Python package manager):
 ```bash
 # macOS/Linux
 curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -37,6 +34,14 @@ pip install uv
 # Or with Homebrew (macOS)
 brew install uv
 ```
+
+2. **System Dependencies** (for macOS):
+```bash
+# Required for local audio playback
+brew install portaudio
+```
+
+> **Note**: Local audio playback (including console mode) requires PortAudio. If you encounter audio-related errors, make sure PortAudio is installed on your system.
 
 ### Installation
 
@@ -65,20 +70,39 @@ brew install uv
 
    This will create a virtual environment and install all dependencies automatically.
 
-**Run the Rime Agent Web App Demo**:
+**Run the Rime Agent**:
 
-Start the agent with
-```bash
-uv run python rime_agent.py
-```
-Then open up http://localhost:7860/client/ to chat with the agent through the UI.
+1. **Web App Demo**:
+   ```bash
+   uv run rime_agent.py
+   ```
 
+2. **Console Mode**:
+   The console mode allows you to hear text-to-speech directly from your terminal without needing a web interface.
+   
+   > **Important**: Console mode requires PortAudio for audio playback. On macOS, install it with `brew install portaudio` if you haven't already.
 
-To record the conversation and share it with others, add the `--record` parameter:
-```bash
-uv run python rime_agent.py --record
-```
-Then upon clicking "disconnect" in the UI the conversation will be saved to an audio file in the /recordings directory.
+   ```bash
+   # Convert text to speech directly
+   uv run rime_agent.py --text "your text here"
+
+   # Convert contents of a text file to speech
+   uv run rime_agent.py --text-file path/to/your/file.txt
+
+   # Run with default sample text
+   uv run rime_agent.py --console
+
+   # Record the audio output (works with any of the above)
+   uv run rime_agent.py --text "your text" --record
+   ```
+
+   When using --record, the audio will be saved in the /recordings directory with a timestamp.
+
+3. **Recording Mode**:
+   ```bash
+   uv run rime_agent.py --record
+   ```
+   Then upon clicking "disconnect" in the UI the conversation will be saved to an audio file in the /recordings directory.
 
 ## Important Note
 
