@@ -10,6 +10,7 @@ dependencies = [
     "pipecat-ai[webrtc,websocket,daily,deepgram,silero,rime,openai]==0.0.76",
     "pipecat-ai-small-webrtc-prebuilt==1.0.0",
     "aiofiles==23.2.1",
+    "simpleaudio>=1.0.4",
 ]
 
 [project.optional-dependencies]

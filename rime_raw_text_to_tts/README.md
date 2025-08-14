@@ -91,5 +91,7 @@ python3 main.py --transport daily --record --text "Hello, welcome to the meeting
 ```
 
 
-
+TODO
+[] add the ability to type in more text and send to TTS
+[] merge this with the single main funcion at root.
 
