@@ -2,9 +2,6 @@
 
 This project is a Rime Pipecat hosted agent demonstrating the SST -> LLM -> TTS implementation using Pipecat. It enables voice chat with the agent, allowing for back-and-forth communication. The project supports three major transport layers provided by Pipecat: Twilio, Daily, and SimpleWebRTC. The architecture is designed to allow seamless switching between these transport options without altering the internal structure of the application.
 
-## Note
-
-If you want an example where you can pass text and test Rime audio, you can look into the `rime_raw_text_to_tts` folder.
 
 ## Default Configuration
 
