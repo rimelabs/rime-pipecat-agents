@@ -233,6 +233,19 @@ if __name__ == "__main__":
     parser.add_argument(
         "--record", action="store_true", default=False, help="Enable audio recording"
     )
+
+    # if this flag is passed, we just run local text to speech, then exit. If there is no text,
+    # play a default message.
+    #  Else, play the text given in the command line.
+    parser.add_argument(
+        "--text", action="store_true", default=False, help="Enable audio recording"
+    )
+
+    # same as above, but play the text from a file.
+    parser.add_argument(
+        "--text-file", action="store_true", default=False, help="Enable audio recording"
+    )
+
     logger.info("Starting the bot")
 
     # Pipecat Examples Runner Utility
