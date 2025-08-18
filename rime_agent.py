@@ -268,7 +268,7 @@ async def consoleMode(args: argparse.Namespace) -> None:
     # Handle text file input
     elif args.text_file:
         try:
-            with open(args.text_file_path, "r") as f:
+            with open(args.text_file, "r") as f:
                 text_to_speak = f.read().strip()
         except Exception as e:
             logger.error(f"Error reading text file: {e}")
@@ -306,12 +306,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--text", type=str, help="Text to be converted to speech")
     parser.add_argument(
-        "--text-file", action="store_true", help="Use text file input mode"
-    )
-    parser.add_argument(
-        "--text-file-path",
-        type=str,
-        help="Path to the text file to be converted to speech",
+        "--text-file", type=str, help="Path to the text file to be converted to speech"
     )
     args = parser.parse_args()
 
