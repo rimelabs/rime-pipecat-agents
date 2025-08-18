@@ -262,21 +262,20 @@ async def consoleMode(args: argparse.Namespace) -> None:
         ),
     )
 
-    # Default text if no input is provided
-    text_to_speak = "There's a 2022 Ferrari F8 Tributo with 7,638 miles, a 2018 Ferrari 488 G. T. B. with 9,837 miles, and a 2019 Ferrari G. T. C. 4 Lusso V12 with 17,097 miles."
-
+    # Handle text input
+    if args.text:
+        text_to_speak = args.text
     # Handle text file input
-    if args.text_file:
+    elif args.text_file:
         try:
             with open(args.text_file_path, "r") as f:
                 text_to_speak = f.read().strip()
         except Exception as e:
             logger.error(f"Error reading text file: {e}")
             return
-    # Handle direct text input
-    elif args.text:
-        text_to_speak = args.text
-
+    # Default text if no input is provided
+    else:
+        text_to_speak = "There's a 2022 Ferrari F8 Tributo with 7,638 miles, a 2018 Ferrari 488 G. T. B. with 9,837 miles, and a 2019 Ferrari G. T. C. 4 Lusso V12 with 17,097 miles."
     pipeline = Pipeline([transport.input(), tts, transport.output()])
     task = PipelineTask(
         pipeline,
