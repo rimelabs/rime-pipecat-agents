@@ -319,7 +319,7 @@ if __name__ == "__main__":
     # If text or text-file is provided, automatically enable console mode
     if args.text or args.text_file:
         args.console = True
-        
+
     if args.console:
         asyncio.run(consoleMode(args))
     else:
