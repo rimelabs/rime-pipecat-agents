@@ -248,6 +248,7 @@ async def consoleMode(args: argparse.Namespace) -> None:
     )
     if not RIME_API_KEY:
         raise ValueError("RIME_API_KEY environment variable not set")
+
     tts = RimeTTSService(
         api_key=RIME_API_KEY,
         voice_id=RIME_VOICE_ID,
@@ -262,10 +263,11 @@ async def consoleMode(args: argparse.Namespace) -> None:
         ),
     )
 
+    audiobuffer = AudioBufferProcessor()
+
     # Handle text input
     if args.text:
         text_to_speak = args.text
-    # Handle text file input
     elif args.text_file:
         try:
             with open(args.text_file, "r") as f:
@@ -273,10 +275,12 @@ async def consoleMode(args: argparse.Namespace) -> None:
         except Exception as e:
             logger.error(f"Error reading text file: {e}")
             return
-    # Default text if no input is provided
     else:
         text_to_speak = "There's a 2022 Ferrari F8 Tributo with 7,638 miles, a 2018 Ferrari 488 G. T. B. with 9,837 miles, and a 2019 Ferrari G. T. C. 4 Lusso V12 with 17,097 miles."
-    pipeline = Pipeline([transport.input(), tts, transport.output()])
+
+    # Add audiobuffer to the pipeline
+    pipeline = Pipeline([transport.input(), tts, transport.output(), audiobuffer])
+
     task = PipelineTask(
         pipeline,
         params=PipelineParams(
@@ -284,6 +288,10 @@ async def consoleMode(args: argparse.Namespace) -> None:
             enable_usage_metrics=True,
         ),
     )
+
+    # Start recording if enabled
+    if args.record:
+        await audiobuffer.start_recording()
 
     await task.queue_frames(
         [
@@ -294,6 +302,18 @@ async def consoleMode(args: argparse.Namespace) -> None:
 
     runner = PipelineRunner()
     await runner.run(task)
+
+    # Manually get the audio after pipeline completes
+    if args.record:
+        bot_audio = bytes(audiobuffer._bot_audio_buffer)
+        if bot_audio:
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"recordings/console_{timestamp}.wav"
+            logger.info("Saving console audio to %s", filename)
+            os.makedirs("recordings", exist_ok=True)
+            await save_audio_file(bot_audio, filename, audiobuffer.sample_rate, 1)
+        else:
+            logger.warning("No audio data captured for recording")
 
 
 if __name__ == "__main__":
