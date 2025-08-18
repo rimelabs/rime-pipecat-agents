@@ -62,20 +62,30 @@ brew install uv
 
    This will create a virtual environment and install all dependencies automatically.
 
-**Run the Rime Agent Web App Demo**:
+**Run the Rime Agent**:
 
-Start the agent with
-```bash
-uv run python rime_agent.py
-```
-Then open up http://localhost:7860/client/ to chat with the agent through the UI.
+1. **Web App Demo**:
+   ```bash
+   uv run rime_agent.py
+   ```
 
+2. **Console Mode**:
+   ```bash
+   # Run with direct text input
+   uv run rime_agent.py --text "your text here"
 
-To record the conversation and share it with others, add the `--record` parameter:
-```bash
-uv run python rime_agent.py --record
-```
-Then upon clicking "disconnect" in the UI the conversation will be saved to an audio file in the /recordings directory.
+   # Run with text from a file
+   uv run rime_agent.py --text-file path/to/your/file.txt
+
+   # Run with default text
+   uv run rime_agent.py --console
+   ```
+
+3. **Recording Mode**:
+   ```bash
+   uv run rime_agent.py --record
+   ```
+   Then upon clicking "disconnect" in the UI the conversation will be saved to an audio file in the /recordings directory.
 
 ## Important Note
 
