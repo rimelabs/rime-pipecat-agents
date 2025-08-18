@@ -63,6 +63,22 @@ transport_params: Dict[str, Callable[[], TransportParams]] = {
 }
 
 
+async def prepare_audio_filename(prefix: str = "merged") -> str:
+    """
+    Prepare a filename for audio recording with timestamp.
+
+    Args:
+        prefix: Prefix for the filename (default: "merged")
+
+    Returns:
+        str: The prepared filename with path
+    """
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"recordings/{prefix}_{timestamp}.wav"
+    os.makedirs("recordings", exist_ok=True)
+    return filename
+
+
 async def save_audio_file(
     audio: bytes, filename: str, sample_rate: int, num_channels: int
 ) -> None:
@@ -235,9 +251,20 @@ async def run_example(
         raise
 
 
-async def consoleMode(args: argparse.Namespace) -> None:
+async def console_mode(args: argparse.Namespace) -> None:
     """
-    Console mode function that can handle direct text input or text from a file.
+    Console mode function that handles text-to-speech conversion with optional audio recording.
+
+    This function supports:
+    1. Direct text input via --text argument
+    2. Text file input via --text-file argument
+    3. Audio recording via --record flag
+
+    The audio recording is saved in WAV format with a timestamp in the recordings directory.
+    If no text input is provided, a default text will be used.
+
+    Args:
+        args: Command line arguments containing text, text-file, and record options
     """
     transport = LocalAudioTransport(
         LocalAudioTransportParams(
@@ -249,6 +276,10 @@ async def consoleMode(args: argparse.Namespace) -> None:
     if not RIME_API_KEY:
         raise ValueError("RIME_API_KEY environment variable not set")
 
+    # Initialize audio buffer for recording
+    audiobuffer = AudioBufferProcessor()
+
+    # Initialize TTS service
     tts = RimeTTSService(
         api_key=RIME_API_KEY,
         voice_id=RIME_VOICE_ID,
@@ -263,24 +294,20 @@ async def consoleMode(args: argparse.Namespace) -> None:
         ),
     )
 
-    audiobuffer = AudioBufferProcessor()
-
-    # Handle text input
-    if args.text:
-        text_to_speak = args.text
-    elif args.text_file:
+    # Get text input from arguments or use default
+    text_to_speak = args.text
+    if not text_to_speak and args.text_file:
         try:
-            with open(args.text_file, "r") as f:
+            with open(args.text_file, "r", encoding="utf-8") as f:
                 text_to_speak = f.read().strip()
         except Exception as e:
-            logger.error(f"Error reading text file: {e}")
+            logger.error("Error reading text file: %s", str(e))
             return
-    else:
+    if not text_to_speak:
         text_to_speak = "There's a 2022 Ferrari F8 Tributo with 7,638 miles, a 2018 Ferrari 488 G. T. B. with 9,837 miles, and a 2019 Ferrari G. T. C. 4 Lusso V12 with 17,097 miles."
 
-    # Add audiobuffer to the pipeline
+    # Set up pipeline with audio recording support
     pipeline = Pipeline([transport.input(), tts, transport.output(), audiobuffer])
-
     task = PipelineTask(
         pipeline,
         params=PipelineParams(
@@ -289,28 +316,21 @@ async def consoleMode(args: argparse.Namespace) -> None:
         ),
     )
 
-    # Start recording if enabled
+    # Start audio recording if enabled
     if args.record:
         await audiobuffer.start_recording()
 
-    await task.queue_frames(
-        [
-            TTSSpeakFrame(text_to_speak),
-            EndFrame(),
-        ]
-    )
+    # Process text-to-speech
+    await task.queue_frames([TTSSpeakFrame(text_to_speak), EndFrame()])
 
     runner = PipelineRunner()
     await runner.run(task)
 
-    # Manually get the audio after pipeline completes
+    # Save recorded audio if enabled
     if args.record:
         bot_audio = bytes(audiobuffer._bot_audio_buffer)
         if bot_audio:
-            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"recordings/console_{timestamp}.wav"
-            logger.info("Saving console audio to %s", filename)
-            os.makedirs("recordings", exist_ok=True)
+            filename = await prepare_audio_filename(prefix="console")
             await save_audio_file(bot_audio, filename, audiobuffer.sample_rate, 1)
         else:
             logger.warning("No audio data captured for recording")
@@ -335,7 +355,7 @@ if __name__ == "__main__":
         args.console = True
 
     if args.console:
-        asyncio.run(consoleMode(args))
+        asyncio.run(console_mode(args))
     else:
         # Pipecat Examples Runner Utility
         # -----------------------------
