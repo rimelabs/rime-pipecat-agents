@@ -4,6 +4,7 @@ import io
 import logging
 import os
 import wave
+import asyncio
 from typing import Dict, Callable
 
 import aiofiles
@@ -20,7 +21,13 @@ from pipecat.services.deepgram.stt import DeepgramSTTService
 from pipecat.services.openai.llm import OpenAILLMService
 from pipecat.processors.aggregators.openai_llm_context import OpenAILLMContext
 from pipecat.audio.vad.silero import SileroVADAnalyzer
+from pipecat.frames.frames import EndFrame, TTSSpeakFrame
 from pipecat.processors.frameworks.rtvi import RTVIProcessor, RTVIObserver
+from pipecat.transports.local.audio import (
+    LocalAudioTransport,
+    LocalAudioTransportParams,
+)
+from pipecat.examples.run import main
 
 
 # Configure logging
@@ -230,42 +237,113 @@ async def run_example(
 
 async def consoleMode(args: argparse.Namespace) -> None:
     """
-    This function is an example of console mode. so basically to show you how to run and listen to audio from terminal itself
+    Console mode function that can handle direct text input or text from a file.
     """
-    print("console mode")
+    transport = LocalAudioTransport(
+        LocalAudioTransportParams(
+            audio_in_enabled=True,
+            audio_out_enabled=True,
+            vad_analyzer=SileroVADAnalyzer(),
+        )
+    )
+    api_key = os.getenv("RIME_API_KEY")
+    if not api_key:
+        raise ValueError("RIME_API_KEY environment variable not set")
+    tts = RimeTTSService(
+        api_key=api_key,
+        voice_id="rex",
+        model="mistv2",
+        url="wss://users.rime.ai/ws2",
+        params=RimeTTSService.InputParams(
+            language=Language.EN,
+            speed_alpha=1.0,
+            reduce_latency=False,
+            pause_between_brackets=True,
+            phonemize_between_brackets=False,
+        ),
+    )
+
+    # Default text if no input is provided
+    text_to_speak = "There's a 2022 Ferrari F8 Tributo with 7,638 miles, a 2018 Ferrari 488 G. T. B. with 9,837 miles, and a 2019 Ferrari G. T. C. 4 Lusso V12 with 17,097 miles."
+
+    # Handle text file input
+    if args.text_file:
+        try:
+            with open(args.text_file_path, "r") as f:
+                text_to_speak = f.read().strip()
+        except Exception as e:
+            logger.error(f"Error reading text file: {e}")
+            return
+    # Handle direct text input
+    elif args.text:
+        text_to_speak = args.text
+
+    pipeline = Pipeline([transport.input(), tts, transport.output()])
+    task = PipelineTask(
+        pipeline,
+        params=PipelineParams(
+            enable_metrics=True,
+            enable_usage_metrics=True,
+        ),
+    )
+
+    await task.queue_frames(
+        [
+            TTSSpeakFrame(text_to_speak),
+            EndFrame(),
+        ]
+    )
+
+    runner = PipelineRunner()
+    await runner.run(task)
 
 
-if __name__ == "__main__":
-    # Import standard utility for running example bot scripts in the Pipecat framework
-    from pipecat.examples.run import main
-
+async def main_async():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--record", action="store_true", default=False, help="Enable audio recording"
     )
-    logger.info("Starting the bot")
+    parser.add_argument(
+        "--console", action="store_true", default=False, help="Enable console mode"
+    )
+    parser.add_argument("--text", type=str, help="Text to be converted to speech")
+    parser.add_argument(
+        "--text-file", action="store_true", help="Use text file input mode"
+    )
+    parser.add_argument(
+        "--text-file-path",
+        type=str,
+        help="Path to the text file to be converted to speech",
+    )
+    args = parser.parse_args()
+    if args.console or args.text or args.text_file:
+        await consoleMode(args)
+    else:
+        # Pipecat Examples Runner Utility
+        # -----------------------------
+        #
+        # A standardized utility for running example bot scripts in the Pipecat framework. This utility
+        # enables developers to build and test their bots using consistent patterns across different
+        # transport layers.
+        #
+        # Usage:
+        #     The main function accepts two parameters:
+        #     1. run_example: Your bot's main execution function
+        #     2. transport_params: A dictionary defining available transports:
+        #        - "daily": Daily.co WebRTC
+        #        - "twilio": Twilio
+        #        - "webrtc": Direct WebRTC
+        #
+        # Key Benefits:
+        #     - Transport Agnostic: Write bot logic once, run it with different transports
+        #     - Flexible Testing: Switch between transport layers via command-line arguments
+        #     - Standardized Pattern: Follows Pipecat's foundational example structure
+        #
+        # Note:
+        #     This utility is primarily intended for local development and testing. Use it to
+        #     prototype and validate your Pipecat bots before setting up production infrastructure.
+        main(run_example, transport_params=transport_params, parser=parser)
 
-    # Pipecat Examples Runner Utility
-    # -----------------------------
-    #
-    # A standardized utility for running example bot scripts in the Pipecat framework. This utility
-    # enables developers to build and test their bots using consistent patterns across different
-    # transport layers.
-    #
-    # Usage:
-    #     The main function accepts two parameters:
-    #     1. run_example: Your bot's main execution function
-    #     2. transport_params: A dictionary defining available transports:
-    #        - "daily": Daily.co WebRTC
-    #        - "twilio": Twilio
-    #        - "webrtc": Direct WebRTC
-    #
-    # Key Benefits:
-    #     - Transport Agnostic: Write bot logic once, run it with different transports
-    #     - Flexible Testing: Switch between transport layers via command-line arguments
-    #     - Standardized Pattern: Follows Pipecat's foundational example structure
-    #
-    # Note:
-    #     This utility is primarily intended for local development and testing. Use it to
-    #     prototype and validate your Pipecat bots before setting up production infrastructure.
-    main(run_example, transport_params=transport_params, parser=parser)
+
+if __name__ == "__main__":
+    asyncio.run(main_async())
