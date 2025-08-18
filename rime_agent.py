@@ -246,14 +246,13 @@ async def consoleMode(args: argparse.Namespace) -> None:
             vad_analyzer=SileroVADAnalyzer(),
         )
     )
-    api_key = os.getenv("RIME_API_KEY")
-    if not api_key:
+    if not RIME_API_KEY:
         raise ValueError("RIME_API_KEY environment variable not set")
     tts = RimeTTSService(
-        api_key=api_key,
-        voice_id="rex",
-        model="mistv2",
-        url="wss://users.rime.ai/ws2",
+        api_key=RIME_API_KEY,
+        voice_id=RIME_VOICE_ID,
+        model=RIME_MODEL,
+        url=RIME_URL,
         params=RimeTTSService.InputParams(
             language=Language.EN,
             speed_alpha=1.0,
@@ -298,7 +297,7 @@ async def consoleMode(args: argparse.Namespace) -> None:
     await runner.run(task)
 
 
-async def main_async():
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--record", action="store_true", default=False, help="Enable audio recording"
@@ -316,8 +315,13 @@ async def main_async():
         help="Path to the text file to be converted to speech",
     )
     args = parser.parse_args()
-    if args.console or args.text or args.text_file:
-        await consoleMode(args)
+
+    # If text or text-file is provided, automatically enable console mode
+    if args.text or args.text_file:
+        args.console = True
+        
+    if args.console:
+        asyncio.run(consoleMode(args))
     else:
         # Pipecat Examples Runner Utility
         # -----------------------------
@@ -343,7 +347,3 @@ async def main_async():
         #     This utility is primarily intended for local development and testing. Use it to
         #     prototype and validate your Pipecat bots before setting up production infrastructure.
         main(run_example, transport_params=transport_params, parser=parser)
-
-
-if __name__ == "__main__":
-    asyncio.run(main_async())
