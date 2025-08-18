@@ -253,15 +253,16 @@ async def run_example(
 
 async def console_mode(args: argparse.Namespace) -> None:
     """
-    Console mode function that handles text-to-speech conversion with optional audio recording.
+    Console mode function that plays text-to-speech directly in the terminal without web interface.
 
-    This function supports:
+    This function provides terminal-based text-to-speech playback with:
     1. Direct text input via --text argument
     2. Text file input via --text-file argument
-    3. Audio recording via --record flag
+    3. Optional audio recording via --record flag
 
-    The audio recording is saved in WAV format with a timestamp in the recordings directory.
-    If no text input is provided, a default text will be used.
+    Audio will play through your system's default output device. When recording is enabled,
+    the audio is saved in WAV format with a timestamp in the recordings directory.
+    If no text input is provided, a default sample text will be used.
 
     Args:
         args: Command line arguments containing text, text-file, and record options

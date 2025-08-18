@@ -70,16 +70,23 @@ brew install uv
    ```
 
 2. **Console Mode**:
+   The console mode allows you to hear text-to-speech directly from your terminal without needing a web interface.
+
    ```bash
-   # Run with direct text input
+   # Convert text to speech directly
    uv run rime_agent.py --text "your text here"
 
-   # Run with text from a file
+   # Convert contents of a text file to speech
    uv run rime_agent.py --text-file path/to/your/file.txt
 
-   # Run with default text
+   # Run with default sample text
    uv run rime_agent.py --console
+
+   # Record the audio output (works with any of the above)
+   uv run rime_agent.py --text "your text" --record
    ```
+
+   When using --record, the audio will be saved in the /recordings directory with a timestamp.
 
 3. **Recording Mode**:
    ```bash
