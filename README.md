@@ -23,7 +23,7 @@ This project is a Rime Pipecat hosted agent demonstrating the SST -> LLM -> TTS 
 
 ### Prerequisites
 
-**Install uv** (Python package manager):
+1. **Install uv** (Python package manager):
 ```bash
 # macOS/Linux
 curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -34,6 +34,14 @@ pip install uv
 # Or with Homebrew (macOS)
 brew install uv
 ```
+
+2. **System Dependencies** (for macOS):
+```bash
+# Required for local audio playback
+brew install portaudio
+```
+
+> **Note**: Local audio playback (including console mode) requires PortAudio. If you encounter audio-related errors, make sure PortAudio is installed on your system.
 
 ### Installation
 
@@ -71,6 +79,8 @@ brew install uv
 
 2. **Console Mode**:
    The console mode allows you to hear text-to-speech directly from your terminal without needing a web interface.
+   
+   > **Important**: Console mode requires PortAudio for audio playback. On macOS, install it with `brew install portaudio` if you haven't already.
 
    ```bash
    # Convert text to speech directly
