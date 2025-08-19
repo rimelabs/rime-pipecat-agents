@@ -24,8 +24,8 @@ logger.setLevel(logging.INFO)
 # Load environment variables
 load_dotenv(override=True)
 
-RIME_VOICE_ID = "glacier"
-RIME_MODEL = "mistv2"
+RIME_VOICE_ID = "luna"
+RIME_MODEL = "arcana"
 
 
 RIME_API_KEY = os.getenv("RIME_API_KEY")
@@ -114,13 +114,6 @@ async def run_example(
             voice_id=RIME_VOICE_ID,
             aiohttp_session=session,
             model=RIME_MODEL,
-            params=RimeHttpTTSService.InputParams(
-                language=Language.EN,
-                speed_alpha=1.0,
-                reduce_latency=False,
-                pause_between_brackets=True,
-                phonemize_between_brackets=False,
-            ),
         )
 
         # Initialize audio buffer for recording
