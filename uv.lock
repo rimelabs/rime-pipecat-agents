@@ -17,6 +17,10 @@ resolution-markers = [
 ]
 
 [manifest]
+members = [
+    "rime-http",
+    "rime-pipecate-agents",
+]
 overrides = [
     { name = "llvmlite", specifier = ">=0.41.0" },
     { name = "numba", specifier = ">=0.58.0" },
@@ -2280,6 +2284,11 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/83/48/7cf52353299e02aa629150007fa75f4b91d99b4f2fa536f2e24ead810116/rignore-0.6.4-pp311-pypy311_pp73-musllinux_1_2_i686.whl", hash = "sha256:028f62a7b0a6235bb3f03c9e7f342352e7fa4b3f08c761c72f9de8faee40ed9c", size = 1111714, upload-time = "2025-07-19T19:24:31.717Z" },
     { url = "https://files.pythonhosted.org/packages/84/9c/3881ad34f01942af0cf713e25e476bf851e04e389cc3ff146c3b459ab861/rignore-0.6.4-pp311-pypy311_pp73-musllinux_1_2_x86_64.whl", hash = "sha256:7e6c425603db2c147eace4f752ca3cd4551e7568c9d332175d586c68bcbe3d8d", size = 1122433, upload-time = "2025-07-19T19:24:43.973Z" },
 ]
+
+[[package]]
+name = "rime-http"
+version = "0.1.0"
+source = { virtual = "rime-http" }
 
 [[package]]
 name = "rime-pipecate-agents"
