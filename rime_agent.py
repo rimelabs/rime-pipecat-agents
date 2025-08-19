@@ -6,7 +6,6 @@ import os
 import wave
 from typing import Dict, Callable
 
-import aiofiles
 from dotenv import load_dotenv
 
 from pipecat.pipeline.pipeline import Pipeline
@@ -16,8 +15,6 @@ from pipecat.processors.audio.audio_buffer_processor import AudioBufferProcessor
 from pipecat.services.rime.tts import RimeTTSService
 from pipecat.transcriptions.language import Language
 from pipecat.transports.base_transport import BaseTransport, TransportParams
-from pipecat.transports.network.fastapi_websocket import FastAPIWebsocketParams
-from pipecat.transports.services.daily import DailyParams
 from pipecat.services.deepgram.stt import DeepgramSTTService
 from pipecat.services.openai.llm import OpenAILLMService
 from pipecat.processors.aggregators.openai_llm_context import OpenAILLMContext
@@ -167,8 +164,7 @@ async def run_example(
         audiobuffer = AudioBufferProcessor()
 
         # Set up the pipeline
-        pipeline_params = PipelineParams(
-            enable_metrics=True, enable_usage_metrics=True)
+        pipeline_params = PipelineParams(enable_metrics=True, enable_usage_metrics=True)
 
         task = PipelineTask(
             Pipeline(
@@ -225,8 +221,7 @@ async def run_example(
         raise
     except Exception as e:
         logger.error(
-            "An unexpected error occurred while running the TTS bot: %s", str(
-                e)
+            "An unexpected error occurred while running the TTS bot: %s", str(e)
         )
         logger.exception("Full traceback:")
         raise

@@ -1,0 +1,13 @@
+[project]
+name = "rime-http"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pipecat>=0.3.0",
+    "pipecat-ai-small-webrtc-prebuilt>=1.0.0",
+    "pipecat-ai[daily,deepgram,openai,rime,silero,webrtc,websocket]>=0.0.76",
+    "python-dotenv>=1.1.1",
+    "simpleaudio>=1.0.4",
+]
