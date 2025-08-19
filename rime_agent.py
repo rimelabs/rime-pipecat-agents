@@ -7,7 +7,8 @@ import wave
 from typing import Dict, Callable
 
 from dotenv import load_dotenv
-
+import aiohttp
+from pipecat.services.rime.tts import RimeHttpTTSService
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.runner import PipelineRunner
 from pipecat.pipeline.task import PipelineParams, PipelineTask
@@ -144,14 +145,14 @@ async def run_example(
         )
 
         context_aggregator = llm.create_context_aggregator(context)
-
-        logger.info("Initializing Rime TTS service")
-        tts = RimeTTSService(
+        logger.info("Initializing Rime HTTP service")
+        session = aiohttp.ClientSession()
+        tts = RimeHttpTTSService(
             api_key=RIME_API_KEY,
             voice_id=RIME_VOICE_ID,
+            aiohttp_session=session,
             model=RIME_MODEL,
-            url=RIME_URL,
-            params=RimeTTSService.InputParams(
+            params=RimeHttpTTSService.InputParams(
                 language=Language.EN,
                 speed_alpha=1.0,
                 reduce_latency=False,
