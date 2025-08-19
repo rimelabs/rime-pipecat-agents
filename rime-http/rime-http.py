@@ -1,14 +1,18 @@
 import argparse
+import datetime
+import io
 import logging
 import os
+import wave
+from typing import Dict, Callable
+
+from dotenv import load_dotenv
 import aiohttp
 from pipecat.services.rime.tts import RimeHttpTTSService
-from typing import Dict, Callable
-from dotenv import load_dotenv
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.runner import PipelineRunner
 from pipecat.pipeline.task import PipelineParams, PipelineTask
-from pipecat.transcriptions.language import Language
+from pipecat.processors.audio.audio_buffer_processor import AudioBufferProcessor
 from pipecat.transports.base_transport import BaseTransport, TransportParams
 from pipecat.services.deepgram.stt import DeepgramSTTService
 from pipecat.services.openai.llm import OpenAILLMService
@@ -26,7 +30,6 @@ load_dotenv(override=True)
 
 RIME_VOICE_ID = "luna"
 RIME_MODEL = "arcana"
-
 
 RIME_API_KEY = os.getenv("RIME_API_KEY")
 DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
@@ -48,6 +51,39 @@ transport_params: Dict[str, Callable[[], TransportParams]] = {
         vad_analyzer=SileroVADAnalyzer(),
     )
 }
+
+
+async def save_audio_file(
+    audio: bytes, filename: str, sample_rate: int, num_channels: int
+) -> None:
+    """
+    Save audio data to a WAV file.
+
+    Args:
+        audio: Raw audio data bytes
+        filename: Path where the WAV file will be saved
+        sample_rate: Audio sample rate in Hz
+        num_channels: Number of audio channels (1 for mono, 2 for stereo)
+    """
+    if not audio:
+        logger.warning("No audio data to save for %s", filename)
+        return
+
+    try:
+        with io.BytesIO() as buffer:
+            with wave.open(buffer, "wb") as wf:
+                wf.setnchannels(num_channels)  # Set number of channels
+                wf.setsampwidth(2)  # Set sample width to 2 bytes (16 bits)
+                wf.setframerate(sample_rate)  # Set frame rate
+                wf.writeframes(audio)  # Write audio data
+
+            # Save the buffer contents to file
+            async with aiofiles.open(filename, "wb") as file:
+                await file.write(buffer.getvalue())
+
+        logger.info("Audio successfully saved to %s", filename)
+    except Exception as e:
+        logger.error("Failed to save audio to %s: %s", filename, str(e))
 
 
 async def run_example(
@@ -106,9 +142,8 @@ async def run_example(
         )
 
         context_aggregator = llm.create_context_aggregator(context)
-        session = aiohttp.ClientSession()
-
         logger.info("Initializing Rime HTTP service")
+        session = aiohttp.ClientSession()
         tts = RimeHttpTTSService(
             api_key=RIME_API_KEY,
             voice_id=RIME_VOICE_ID,
@@ -117,6 +152,7 @@ async def run_example(
         )
 
         # Initialize audio buffer for recording
+        audiobuffer = AudioBufferProcessor()
 
         # Set up the pipeline
         pipeline_params = PipelineParams(enable_metrics=True, enable_usage_metrics=True)
@@ -131,6 +167,7 @@ async def run_example(
                     tts,
                     rtvi_processor,  # Add this line
                     transport.output(),
+                    audiobuffer,
                     context_aggregator.assistant(),
                 ]
             ),
@@ -143,6 +180,8 @@ async def run_example(
         @transport.event_handler("on_client_connected")
         async def on_client_connected(transport, client) -> None:
             """Handle new client connections by starting recording and sending welcome messages."""
+            if args.record:
+                await audiobuffer.start_recording()
             logger.info("Client connected")
             task.add_observer(rtvi_observer)
 
@@ -152,6 +191,17 @@ async def run_example(
         async def on_client_disconnected(transport, client):
             logger.info("Client disconnected")
             await task.cancel()
+
+        # Handler for merged audio
+        @audiobuffer.event_handler("on_audio_data")
+        async def on_audio_data(buffer, audio, sample_rate, num_channels):
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"recordings/merged_{timestamp}.wav"
+
+            logger.info("Saving audio to %s", filename)
+
+            os.makedirs("recordings", exist_ok=True)
+            await save_audio_file(audio, filename, sample_rate, num_channels)
 
         # Run the pipeline
         runner = PipelineRunner(handle_sigint=handle_sigint)
@@ -173,6 +223,9 @@ if __name__ == "__main__":
     from pipecat.examples.run import main
 
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--record", action="store_true", default=False, help="Enable audio recording"
+    )
     logger.info("Starting the bot")
 
     # Pipecat Examples Runner Utility

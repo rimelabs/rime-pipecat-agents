@@ -6,9 +6,9 @@ import os
 import wave
 from typing import Dict, Callable
 
+import aiofiles
 from dotenv import load_dotenv
-import aiohttp
-from pipecat.services.rime.tts import RimeHttpTTSService
+
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.runner import PipelineRunner
 from pipecat.pipeline.task import PipelineParams, PipelineTask
@@ -16,6 +16,8 @@ from pipecat.processors.audio.audio_buffer_processor import AudioBufferProcessor
 from pipecat.services.rime.tts import RimeTTSService
 from pipecat.transcriptions.language import Language
 from pipecat.transports.base_transport import BaseTransport, TransportParams
+from pipecat.transports.network.fastapi_websocket import FastAPIWebsocketParams
+from pipecat.transports.services.daily import DailyParams
 from pipecat.services.deepgram.stt import DeepgramSTTService
 from pipecat.services.openai.llm import OpenAILLMService
 from pipecat.processors.aggregators.openai_llm_context import OpenAILLMContext
@@ -145,14 +147,14 @@ async def run_example(
         )
 
         context_aggregator = llm.create_context_aggregator(context)
-        logger.info("Initializing Rime HTTP service")
-        session = aiohttp.ClientSession()
-        tts = RimeHttpTTSService(
+
+        logger.info("Initializing Rime TTS service")
+        tts = RimeTTSService(
             api_key=RIME_API_KEY,
             voice_id=RIME_VOICE_ID,
-            aiohttp_session=session,
             model=RIME_MODEL,
-            params=RimeHttpTTSService.InputParams(
+            url=RIME_URL,
+            params=RimeTTSService.InputParams(
                 language=Language.EN,
                 speed_alpha=1.0,
                 reduce_latency=False,
