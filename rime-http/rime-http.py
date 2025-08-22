@@ -35,8 +35,8 @@ logger.setLevel(logging.INFO)
 # Load environment variables
 load_dotenv(override=True)
 
-RIME_VOICE_ID = "luna"
-RIME_MODEL = "arcana"
+RIME_VOICE_ID = "cove"
+RIME_MODEL = "mistv2"
 
 RIME_API_KEY = os.getenv("RIME_API_KEY")
 DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
