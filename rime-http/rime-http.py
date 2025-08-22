@@ -19,6 +19,13 @@ from pipecat.services.openai.llm import OpenAILLMService
 from pipecat.processors.aggregators.openai_llm_context import OpenAILLMContext
 from pipecat.audio.vad.silero import SileroVADAnalyzer
 from pipecat.processors.frameworks.rtvi import RTVIProcessor, RTVIObserver
+from pipecat.processors.frame_processor import FrameProcessor, FrameDirection
+from pipecat.frames.frames import (
+    LLMTextFrame,
+    LLMFullResponseStartFrame,
+    LLMFullResponseEndFrame,
+    TextFrame,
+)
 
 
 # Configure logging
@@ -86,6 +93,39 @@ async def save_audio_file(
         logger.error("Failed to save audio to %s: %s", filename, str(e))
 
 
+class LLMCompleteResponseProcessor(FrameProcessor):
+    """Custom processor that buffers LLM text until complete response is ready."""
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._collecting = False
+        self._collected_text = ""
+
+    async def process_frame(self, frame, direction):
+        await super().process_frame(frame, direction)
+
+        if isinstance(frame, LLMFullResponseStartFrame):
+            self._collecting = True
+            self._collected_text = ""
+            # Pass the start frame through
+            await self.push_frame(frame, direction)
+        elif isinstance(frame, LLMTextFrame) and self._collecting:
+            # Accumulate text but don't push the frame yet
+            self._collected_text += frame.text
+        elif isinstance(frame, LLMFullResponseEndFrame):
+            # Now push the complete text as a single frame
+            if self._collected_text:
+                complete_frame = LLMTextFrame(self._collected_text)
+                await self.push_frame(complete_frame, direction)
+            # Pass the end frame through
+            await self.push_frame(frame, direction)
+            self._collecting = False
+            self._collected_text = ""
+        else:
+            # Pass all other frames through unchanged
+            await self.push_frame(frame, direction)
+
+
 async def run_example(
     transport: BaseTransport, args: argparse.Namespace, handle_sigint: bool
 ) -> None:
@@ -144,6 +184,8 @@ async def run_example(
         context_aggregator = llm.create_context_aggregator(context)
         logger.info("Initializing Rime HTTP service")
         session = aiohttp.ClientSession()
+        llm_complete_processor = LLMCompleteResponseProcessor()
+
         tts = RimeHttpTTSService(
             api_key=RIME_API_KEY,
             voice_id=RIME_VOICE_ID,
@@ -164,6 +206,7 @@ async def run_example(
                     stt,
                     context_aggregator.user(),
                     llm,
+                    llm_complete_processor,
                     tts,
                     rtvi_processor,  # Add this line
                     transport.output(),
