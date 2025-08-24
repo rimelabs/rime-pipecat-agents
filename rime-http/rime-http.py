@@ -114,6 +114,7 @@ class LLMCompleteResponseProcessor(FrameProcessor):
             self._collected_text += frame.text
         elif isinstance(frame, LLMFullResponseEndFrame):
             # Now push the complete text as a single frame
+            logger.info(f"Collected text: {self._collected_text}")
             if self._collected_text:
                 complete_frame = LLMTextFrame(self._collected_text)
                 await self.push_frame(complete_frame, direction)
@@ -191,6 +192,7 @@ async def run_example(
             voice_id=RIME_VOICE_ID,
             aiohttp_session=session,
             model=RIME_MODEL,
+            aggregate_sentences=False,
         )
 
         # Initialize audio buffer for recording
