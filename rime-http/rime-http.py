@@ -1,5 +1,6 @@
 import logging
 import os
+import argparse
 from typing import Dict, Callable
 from dotenv import load_dotenv
 import aiohttp
@@ -94,7 +95,9 @@ class LLMCompleteResponseProcessor(FrameProcessor):
             await self.push_frame(frame, direction)
 
 
-async def run_example(transport: BaseTransport, handle_sigint: bool) -> None:
+async def run_example(
+    transport: BaseTransport, args: argparse.Namespace, handle_sigint: bool
+) -> None:
     """
     Run the Rime conversational AI bot example.
 
@@ -106,6 +109,7 @@ async def run_example(transport: BaseTransport, handle_sigint: bool) -> None:
 
     Args:
         transport: The transport layer to use (Daily, Twilio, or WebRTC)
+        args: Command line arguments containing additional configuration
         handle_sigint: Whether to handle interrupt signals
     """
     session = None
