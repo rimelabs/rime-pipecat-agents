@@ -173,7 +173,7 @@ async def run_example(
                     llm,
                     llm_complete_processor,
                     tts,
-                    rtvi_processor,  # Add this line
+                    rtvi_processor,
                     transport.output(),
                     context_aggregator.assistant(),
                 ]
