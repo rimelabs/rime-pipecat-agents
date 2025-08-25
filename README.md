@@ -74,7 +74,11 @@ brew install portaudio
 
 1. **Web App Demo**:
    ```bash
+   # Run with WebSocket (default)
    uv run rime_agent.py
+
+   # Run with HTTP instead of WebSocket
+   uv run rime_agent.py --http
    ```
 
 2. **Console Mode**:
@@ -94,6 +98,9 @@ brew install portaudio
 
    # Record the audio output (works with any of the above)
    uv run rime_agent.py --text "your text" --record
+
+   # Use HTTP instead of WebSocket (can be combined with any of the above)
+   uv run rime_agent.py --text "your text" --http
    ```
 
    When using --record, the audio will be saved in the /recordings directory with a timestamp.

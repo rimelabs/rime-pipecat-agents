@@ -6,7 +6,7 @@ import os
 import wave
 import asyncio
 from typing import Dict, Callable
-
+import aiohttp
 import aiofiles
 from dotenv import load_dotenv
 
@@ -14,7 +14,7 @@ from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.runner import PipelineRunner
 from pipecat.pipeline.task import PipelineParams, PipelineTask
 from pipecat.processors.audio.audio_buffer_processor import AudioBufferProcessor
-from pipecat.services.rime.tts import RimeTTSService
+from pipecat.services.rime.tts import RimeTTSService, RimeHttpTTSService
 from pipecat.transcriptions.language import Language
 from pipecat.transports.base_transport import BaseTransport, TransportParams
 from pipecat.services.deepgram.stt import DeepgramSTTService
@@ -170,19 +170,30 @@ async def run_example(
         context_aggregator = llm.create_context_aggregator(context)
 
         logger.info("Initializing Rime TTS service")
-        tts = RimeTTSService(
-            api_key=RIME_API_KEY,
-            voice_id=RIME_VOICE_ID,
-            model=RIME_MODEL,
-            url=RIME_URL,
-            params=RimeTTSService.InputParams(
-                language=Language.EN,
-                speed_alpha=1.0,
-                reduce_latency=False,
-                pause_between_brackets=True,
-                phonemize_between_brackets=False,
-            ),
-        )
+        if args.http:
+            logger.info("Using Rime HTTP service")
+            session = aiohttp.ClientSession()
+            tts = RimeHttpTTSService(
+                api_key=RIME_API_KEY,
+                voice_id=RIME_VOICE_ID,
+                aiohttp_session=session,
+                model=RIME_MODEL,
+            )
+        else:
+            logger.info("Using Rime WebSocket service")
+            tts = RimeTTSService(
+                api_key=RIME_API_KEY,
+                voice_id=RIME_VOICE_ID,
+                model=RIME_MODEL,
+                url=RIME_URL,
+                params=RimeTTSService.InputParams(
+                    language=Language.EN,
+                    speed_alpha=1.0,
+                    reduce_latency=False,
+                    pause_between_brackets=True,
+                    phonemize_between_brackets=False,
+                ),
+            )
 
         # Initialize audio buffer for recording
         audiobuffer = AudioBufferProcessor()
@@ -281,19 +292,30 @@ async def console_mode(args: argparse.Namespace) -> None:
     audiobuffer = AudioBufferProcessor()
 
     # Initialize TTS service
-    tts = RimeTTSService(
-        api_key=RIME_API_KEY,
-        voice_id=RIME_VOICE_ID,
-        model=RIME_MODEL,
-        url=RIME_URL,
-        params=RimeTTSService.InputParams(
-            language=Language.EN,
-            speed_alpha=1.0,
-            reduce_latency=False,
-            pause_between_brackets=True,
-            phonemize_between_brackets=False,
-        ),
-    )
+    if args.http:
+        logger.info("Using Rime HTTP service")
+        session = aiohttp.ClientSession()
+        tts = RimeHttpTTSService(
+            api_key=RIME_API_KEY,
+            voice_id=RIME_VOICE_ID,
+            aiohttp_session=session,
+            model=RIME_MODEL,
+        )
+    else:
+        logger.info("Using Rime WebSocket service")
+        tts = RimeTTSService(
+            api_key=RIME_API_KEY,
+            voice_id=RIME_VOICE_ID,
+            model=RIME_MODEL,
+            url=RIME_URL,
+            params=RimeTTSService.InputParams(
+                language=Language.EN,
+                speed_alpha=1.0,
+                reduce_latency=False,
+                pause_between_brackets=True,
+                phonemize_between_brackets=False,
+            ),
+        )
 
     # Get text input from arguments or use default
     text_to_speak = args.text
@@ -348,6 +370,12 @@ if __name__ == "__main__":
     parser.add_argument("--text", type=str, help="Text to be converted to speech")
     parser.add_argument(
         "--text-file", type=str, help="Path to the text file to be converted to speech"
+    )
+    parser.add_argument(
+        "--http",
+        action="store_true",
+        help="Use HTTP instead of WebSocket for Rime TTS service communication",
+        default=False,
     )
     args = parser.parse_args()
 
