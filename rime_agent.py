@@ -112,6 +112,46 @@ async def save_audio_file(
         logger.error("Failed to save audio to %s: %s", filename, str(e))
 
 
+def initialize_tts_service(
+    cmd_args: argparse.Namespace, aiohttp_session: aiohttp.ClientSession = None
+) -> RimeTTSService | RimeHttpTTSService:
+    """
+    Initialize and configure the Rime TTS service based on command-line arguments.
+
+    Args:
+        cmd_args: Command line arguments containing the http flag
+        aiohttp_session: Optional aiohttp ClientSession for HTTP service
+
+    Returns:
+        Configured instance of either RimeTTSService or RimeHttpTTSService
+    """
+    if cmd_args.http:
+        logger.info("Using Rime HTTP service")
+        if aiohttp_session is None:
+            aiohttp_session = aiohttp.ClientSession()
+        return RimeHttpTTSService(
+            api_key=RIME_API_KEY,
+            voice_id=RIME_VOICE_ID,
+            aiohttp_session=aiohttp_session,
+            model=RIME_MODEL,
+        )
+    else:
+        logger.info("Using Rime WebSocket service")
+        return RimeTTSService(
+            api_key=RIME_API_KEY,
+            voice_id=RIME_VOICE_ID,
+            model=RIME_MODEL,
+            url=RIME_URL,
+            params=RimeTTSService.InputParams(
+                language=Language.EN,
+                speed_alpha=1.0,
+                reduce_latency=False,
+                pause_between_brackets=True,
+                phonemize_between_brackets=False,
+            ),
+        )
+
+
 async def run_example(
     transport: BaseTransport, args: argparse.Namespace, handle_sigint: bool
 ) -> None:
@@ -170,30 +210,8 @@ async def run_example(
         context_aggregator = llm.create_context_aggregator(context)
 
         logger.info("Initializing Rime TTS service")
-        if args.http:
-            logger.info("Using Rime HTTP service")
-            session = aiohttp.ClientSession()
-            tts = RimeHttpTTSService(
-                api_key=RIME_API_KEY,
-                voice_id=RIME_VOICE_ID,
-                aiohttp_session=session,
-                model=RIME_MODEL,
-            )
-        else:
-            logger.info("Using Rime WebSocket service")
-            tts = RimeTTSService(
-                api_key=RIME_API_KEY,
-                voice_id=RIME_VOICE_ID,
-                model=RIME_MODEL,
-                url=RIME_URL,
-                params=RimeTTSService.InputParams(
-                    language=Language.EN,
-                    speed_alpha=1.0,
-                    reduce_latency=False,
-                    pause_between_brackets=True,
-                    phonemize_between_brackets=False,
-                ),
-            )
+        session = aiohttp.ClientSession() if args.http else None
+        tts = initialize_tts_service(args, session)
 
         # Initialize audio buffer for recording
         audiobuffer = AudioBufferProcessor()
@@ -292,30 +310,8 @@ async def console_mode(args: argparse.Namespace) -> None:
     audiobuffer = AudioBufferProcessor()
 
     # Initialize TTS service
-    if args.http:
-        logger.info("Using Rime HTTP service")
-        session = aiohttp.ClientSession()
-        tts = RimeHttpTTSService(
-            api_key=RIME_API_KEY,
-            voice_id=RIME_VOICE_ID,
-            aiohttp_session=session,
-            model=RIME_MODEL,
-        )
-    else:
-        logger.info("Using Rime WebSocket service")
-        tts = RimeTTSService(
-            api_key=RIME_API_KEY,
-            voice_id=RIME_VOICE_ID,
-            model=RIME_MODEL,
-            url=RIME_URL,
-            params=RimeTTSService.InputParams(
-                language=Language.EN,
-                speed_alpha=1.0,
-                reduce_latency=False,
-                pause_between_brackets=True,
-                phonemize_between_brackets=False,
-            ),
-        )
+    session = aiohttp.ClientSession() if args.http else None
+    tts = initialize_tts_service(args, session)
 
     # Get text input from arguments or use default
     text_to_speak = args.text
