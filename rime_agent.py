@@ -211,63 +211,69 @@ async def run_example(
 
         logger.info("Initializing Rime TTS service")
         session = aiohttp.ClientSession() if args.http else None
-        tts = initialize_tts_service(args, session)
+        try:
+            tts = initialize_tts_service(args, session)
 
-        # Initialize audio buffer for recording
-        audiobuffer = AudioBufferProcessor()
+            # Initialize audio buffer for recording
+            audiobuffer = AudioBufferProcessor()
 
-        # Set up the pipeline
-        pipeline_params = PipelineParams(enable_metrics=True, enable_usage_metrics=True)
+            # Set up the pipeline
+            pipeline_params = PipelineParams(
+                enable_metrics=True, enable_usage_metrics=True
+            )
 
-        task = PipelineTask(
-            Pipeline(
-                [
-                    transport.input(),
-                    stt,
-                    context_aggregator.user(),
-                    llm,
-                    tts,
-                    rtvi_processor,  # Add this line
-                    transport.output(),
-                    audiobuffer,
-                    context_aggregator.assistant(),
-                ]
-            ),
-            params=pipeline_params,
-            enable_tracing=True,
-            enable_turn_tracking=True,
-        )
+            task = PipelineTask(
+                Pipeline(
+                    [
+                        transport.input(),
+                        stt,
+                        context_aggregator.user(),
+                        llm,
+                        tts,
+                        rtvi_processor,  # Add this line
+                        transport.output(),
+                        audiobuffer,
+                        context_aggregator.assistant(),
+                    ]
+                ),
+                params=pipeline_params,
+                enable_tracing=True,
+                enable_turn_tracking=True,
+            )
 
-        # Handle client connection events
-        @transport.event_handler("on_client_connected")
-        async def on_client_connected(transport, client) -> None:
-            """Handle new client connections by starting recording and sending welcome messages."""
-            if args.record:
-                await audiobuffer.start_recording()
-            logger.info("Client connected")
-            task.add_observer(rtvi_observer)
+            # Handle client connection events
+            @transport.event_handler("on_client_connected")
+            async def on_client_connected(transport, client) -> None:
+                """Handle new client connections by starting recording and sending welcome messages."""
+                if args.record:
+                    await audiobuffer.start_recording()
+                logger.info("Client connected")
+                task.add_observer(rtvi_observer)
 
-            # Start conversation - empty prompt to let LLM follow system instructions
+                # Start conversation - empty prompt to let LLM follow system instructions
 
-        @transport.event_handler("on_client_disconnected")
-        async def on_client_disconnected(transport, client):
-            logger.info("Client disconnected")
-            await task.cancel()
+            @transport.event_handler("on_client_disconnected")
+            async def on_client_disconnected(transport, client):
+                logger.info("Client disconnected")
+                await task.cancel()
 
-        # Handler for merged audio
-        @audiobuffer.event_handler("on_audio_data")
-        async def on_audio_data(buffer, audio, sample_rate, num_channels):
-            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"recordings/merged_{timestamp}.wav"
+            # Handler for merged audio
+            @audiobuffer.event_handler("on_audio_data")
+            async def on_audio_data(buffer, audio, sample_rate, num_channels):
+                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                filename = f"recordings/merged_{timestamp}.wav"
 
-            logger.info("Saving audio to %s", filename)
+                logger.info("Saving audio to %s", filename)
 
-            os.makedirs("recordings", exist_ok=True)
-            await save_audio_file(audio, filename, sample_rate, num_channels)
+                os.makedirs("recordings", exist_ok=True)
+                await save_audio_file(audio, filename, sample_rate, num_channels)
 
-        # Run the pipeline
-        runner = PipelineRunner(handle_sigint=handle_sigint)
-        await runner.run(task)
+            # Run the pipeline
+            runner = PipelineRunner(handle_sigint=handle_sigint)
+            await runner.run(task)
+        finally:
+            if session:
+                await session.close()
 
     except ValueError as ve:
         logger.error("Configuration error: %s", str(ve))
@@ -311,48 +317,54 @@ async def console_mode(args: argparse.Namespace) -> None:
 
     # Initialize TTS service
     session = aiohttp.ClientSession() if args.http else None
-    tts = initialize_tts_service(args, session)
+    try:
+        tts = initialize_tts_service(args, session)
 
-    # Get text input from arguments or use default
-    text_to_speak = args.text
-    if not text_to_speak and args.text_file:
-        try:
-            with open(args.text_file, "r", encoding="utf-8") as f:
-                text_to_speak = f.read().strip()
-        except Exception as e:
-            logger.error("Error reading text file: %s", str(e))
-            return
-    if not text_to_speak:
-        text_to_speak = "There's a 2022 Ferrari F8 Tributo with 7,638 miles, a 2018 Ferrari 488 G. T. B. with 9,837 miles, and a 2019 Ferrari G. T. C. 4 Lusso V12 with 17,097 miles."
+        # Get text input from arguments or use default
+        text_to_speak = args.text
+        if not text_to_speak and args.text_file:
+            try:
+                with open(args.text_file, "r", encoding="utf-8") as f:
+                    text_to_speak = f.read().strip()
+            except Exception as e:
+                logger.error("Error reading text file: %s", str(e))
+                return
+        if not text_to_speak:
+            text_to_speak = "There's a 2022 Ferrari F8 Tributo with 7,638 miles, a 2018 Ferrari 488 G. T. B. with 9,837 miles, and a 2019 Ferrari G. T. C. 4 Lusso V12 with 17,097 miles."
 
-    # Set up pipeline with audio recording support
-    pipeline = Pipeline([transport.input(), tts, transport.output(), audiobuffer])
-    task = PipelineTask(
-        pipeline,
-        params=PipelineParams(
-            enable_metrics=True,
-            enable_usage_metrics=True,
-        ),
-    )
+        # Set up pipeline with audio recording support
+        pipeline = Pipeline([transport.input(), tts, transport.output(), audiobuffer])
+        task = PipelineTask(
+            pipeline,
+            params=PipelineParams(
+                enable_metrics=True,
+                enable_usage_metrics=True,
+            ),
+        )
 
-    # Start audio recording if enabled
-    if args.record:
-        await audiobuffer.start_recording()
+        # Start audio recording if enabled
+        if args.record:
+            await audiobuffer.start_recording()
 
-    # Process text-to-speech
-    await task.queue_frames([TTSSpeakFrame(text_to_speak), EndFrame()])
+        # Process text-to-speech
+        await task.queue_frames([TTSSpeakFrame(text_to_speak), EndFrame()])
 
-    runner = PipelineRunner()
-    await runner.run(task)
+        runner = PipelineRunner()
+        await runner.run(task)
 
-    # Save recorded audio if enabled
-    if args.record:
-        bot_audio = bytes(audiobuffer._bot_audio_buffer)
-        if bot_audio:
-            filename = await prepare_audio_filename(prefix="console")
-            await save_audio_file(bot_audio, filename, audiobuffer.sample_rate, 1)
-        else:
-            logger.warning("No audio data captured for recording")
+        # Save recorded audio if enabled
+        if args.record:
+            bot_audio = bytes(audiobuffer._bot_audio_buffer)
+            if bot_audio:
+                filename = await prepare_audio_filename(prefix="console")
+                await save_audio_file(bot_audio, filename, audiobuffer.sample_rate, 1)
+            else:
+                logger.warning("No audio data captured for recording")
+    except Exception as e:
+        logger.error("An error occurred in console mode: %s", str(e))
+    finally:
+        if session:
+            await session.close()
 
 
 if __name__ == "__main__":
