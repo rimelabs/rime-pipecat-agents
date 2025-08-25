@@ -127,14 +127,12 @@ async def run_example(
         rtvi_observer = RTVIObserver(rtvi_processor)
 
         logger.info("Initializing Deepgram STT service")
-        stt = DeepgramSTTService(
-            api_key=os.getenv("DEEPGRAM_API_KEY"), audio_passthrough=True
-        )
+        stt = DeepgramSTTService(api_key=DEEPGRAM_API_KEY, audio_passthrough=True)
 
         logger.info("Initializing OpenAI LLM service")
         llm = OpenAILLMService(
             model="gpt-4o",
-            api_key=os.getenv("OPENAI_API_KEY"),
+            api_key=OPENAI_API_KEY,
             params=OpenAILLMService.InputParams(
                 temperature=0.7,
             ),
