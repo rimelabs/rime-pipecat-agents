@@ -6,7 +6,7 @@ import os
 import wave
 import asyncio
 from typing import Dict, Callable
-
+import aiohttp
 import aiofiles
 from dotenv import load_dotenv
 
@@ -14,7 +14,7 @@ from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.runner import PipelineRunner
 from pipecat.pipeline.task import PipelineParams, PipelineTask
 from pipecat.processors.audio.audio_buffer_processor import AudioBufferProcessor
-from pipecat.services.rime.tts import RimeTTSService
+from pipecat.services.rime.tts import RimeTTSService, RimeHttpTTSService
 from pipecat.transcriptions.language import Language
 from pipecat.transports.base_transport import BaseTransport, TransportParams
 from pipecat.services.deepgram.stt import DeepgramSTTService
@@ -117,6 +117,46 @@ async def save_audio_file(
         logger.error("Failed to save audio to %s: %s", filename, str(e))
 
 
+def initialize_tts_service(
+    cmd_args: argparse.Namespace, aiohttp_session: aiohttp.ClientSession = None
+) -> RimeTTSService | RimeHttpTTSService:
+    """
+    Initialize and configure the Rime TTS service based on command-line arguments.
+
+    Args:
+        cmd_args: Command line arguments containing the http flag
+        aiohttp_session: Optional aiohttp ClientSession for HTTP service
+
+    Returns:
+        Configured instance of either RimeTTSService or RimeHttpTTSService
+    """
+    if cmd_args.http:
+        logger.info("Using Rime HTTP service")
+        if aiohttp_session is None:
+            aiohttp_session = aiohttp.ClientSession()
+        return RimeHttpTTSService(
+            api_key=RIME_API_KEY,
+            voice_id=RIME_VOICE_ID,
+            aiohttp_session=aiohttp_session,
+            model=RIME_MODEL,
+        )
+    else:
+        logger.info("Using Rime WebSocket service")
+        return RimeTTSService(
+            api_key=RIME_API_KEY,
+            voice_id=RIME_VOICE_ID,
+            model=RIME_MODEL,
+            url=RIME_URL,
+            params=RimeTTSService.InputParams(
+                language=Language.EN,
+                speed_alpha=1.0,
+                reduce_latency=False,
+                pause_between_brackets=True,
+                phonemize_between_brackets=False,
+            ),
+        )
+
+
 async def run_example(
     transport: BaseTransport, args: argparse.Namespace, handle_sigint: bool
 ) -> None:
@@ -175,75 +215,70 @@ async def run_example(
         context_aggregator = llm.create_context_aggregator(context)
 
         logger.info("Initializing Rime TTS service")
-        tts = RimeTTSService(
-            api_key=RIME_API_KEY,
-            voice_id=RIME_VOICE_ID,
-            model=RIME_MODEL,
-            url=RIME_URL,
-            params=RimeTTSService.InputParams(
-                language=Language.EN,
-                speed_alpha=1.0,
-                reduce_latency=False,
-                pause_between_brackets=True,
-                phonemize_between_brackets=False,
-            ),
-        )
+        session = aiohttp.ClientSession() if args.http else None
+        try:
+            tts = initialize_tts_service(args, session)
 
-        # Initialize audio buffer for recording
-        audiobuffer = AudioBufferProcessor()
+            # Initialize audio buffer for recording
+            audiobuffer = AudioBufferProcessor()
 
-        # Set up the pipeline
-        pipeline_params = PipelineParams(enable_metrics=True, enable_usage_metrics=True)
+            # Set up the pipeline
+            pipeline_params = PipelineParams(
+                enable_metrics=True, enable_usage_metrics=True
+            )
 
-        task = PipelineTask(
-            Pipeline(
-                [
-                    transport.input(),
-                    stt,
-                    context_aggregator.user(),
-                    llm,
-                    tts,
-                    rtvi_processor,  # Add this line
-                    transport.output(),
-                    audiobuffer,
-                    context_aggregator.assistant(),
-                ]
-            ),
-            params=pipeline_params,
-            enable_tracing=True,
-            enable_turn_tracking=True,
-        )
+            task = PipelineTask(
+                Pipeline(
+                    [
+                        transport.input(),
+                        stt,
+                        context_aggregator.user(),
+                        llm,
+                        tts,
+                        rtvi_processor,  # Add this line
+                        transport.output(),
+                        audiobuffer,
+                        context_aggregator.assistant(),
+                    ]
+                ),
+                params=pipeline_params,
+                enable_tracing=True,
+                enable_turn_tracking=True,
+            )
 
-        # Handle client connection events
-        @transport.event_handler("on_client_connected")
-        async def on_client_connected(transport, client) -> None:
-            """Handle new client connections by starting recording and sending welcome messages."""
-            if args.record:
-                await audiobuffer.start_recording()
-            logger.info("Client connected")
-            task.add_observer(rtvi_observer)
+            # Handle client connection events
+            @transport.event_handler("on_client_connected")
+            async def on_client_connected(transport, client) -> None:
+                """Handle new client connections by starting recording and sending welcome messages."""
+                if args.record:
+                    await audiobuffer.start_recording()
+                logger.info("Client connected")
+                task.add_observer(rtvi_observer)
 
-            # Start conversation - empty prompt to let LLM follow system instructions
+                # Start conversation - empty prompt to let LLM follow system instructions
 
-        @transport.event_handler("on_client_disconnected")
-        async def on_client_disconnected(transport, client):
-            logger.info("Client disconnected")
-            await task.cancel()
+            @transport.event_handler("on_client_disconnected")
+            async def on_client_disconnected(transport, client):
+                logger.info("Client disconnected")
+                await task.cancel()
 
-        # Handler for merged audio
-        @audiobuffer.event_handler("on_audio_data")
-        async def on_audio_data(buffer, audio, sample_rate, num_channels):
-            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"recordings/merged_{timestamp}.wav"
+            # Handler for merged audio
+            @audiobuffer.event_handler("on_audio_data")
+            async def on_audio_data(buffer, audio, sample_rate, num_channels):
+                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                filename = f"recordings/merged_{timestamp}.wav"
 
-            logger.info("Saving audio to %s", filename)
+                logger.info("Saving audio to %s", filename)
 
-            os.makedirs("recordings", exist_ok=True)
-            await save_audio_file(audio, filename, sample_rate, num_channels)
+                os.makedirs("recordings", exist_ok=True)
+                await save_audio_file(audio, filename, sample_rate, num_channels)
 
-        # Run the pipeline
-        runner = PipelineRunner(handle_sigint=handle_sigint)
-        await runner.run(task)
+            # Run the pipeline
+            runner = PipelineRunner(handle_sigint=handle_sigint)
+            await runner.run(task)
+        finally:
+            if session:
+                await session.close()
 
     except ValueError as ve:
         logger.error("Configuration error: %s", str(ve))
@@ -286,61 +321,56 @@ async def console_mode(args: argparse.Namespace) -> None:
     audiobuffer = AudioBufferProcessor()
 
     # Initialize TTS service
-    tts = RimeTTSService(
-        api_key=RIME_API_KEY,
-        voice_id=RIME_VOICE_ID,
-        model=RIME_MODEL,
-        url=RIME_URL,
-        params=RimeTTSService.InputParams(
-            language=Language.EN,
-            speed_alpha=1.0,
-            reduce_latency=False,
-            pause_between_brackets=True,
-            phonemize_between_brackets=False,
-        ),
-    )
+    session = aiohttp.ClientSession() if args.http else None
+    try:
+        tts = initialize_tts_service(args, session)
 
-    # Get text input from arguments or use default
-    text_to_speak = args.text
+        # Get text input from arguments or use default
+        text_to_speak = args.text
 
-    if not text_to_speak and args.text_file:
-        try:
-            with open(args.text_file, "r", encoding="utf-8") as f:
-                text_to_speak = f.read().strip()
-        except Exception as e:
-            logger.error("Error reading text file: %s", str(e))
-            return
-    if not text_to_speak:
-        text_to_speak = DEFAULT_TEXT
+        if not text_to_speak and args.text_file:
+            try:
+                with open(args.text_file, "r", encoding="utf-8") as f:
+                    text_to_speak = f.read().strip()
+            except Exception as e:
+                logger.error("Error reading text file: %s", str(e))
+                return
+        if not text_to_speak:
+            text_to_speak = DEFAULT_TEXT
 
-    # Set up pipeline with audio recording support
-    pipeline = Pipeline([transport.input(), tts, transport.output(), audiobuffer])
-    task = PipelineTask(
-        pipeline,
-        params=PipelineParams(
-            enable_metrics=True,
-            enable_usage_metrics=True,
-        ),
-    )
+        # Set up pipeline with audio recording support
+        pipeline = Pipeline([transport.input(), tts, transport.output(), audiobuffer])
+        task = PipelineTask(
+            pipeline,
+            params=PipelineParams(
+                enable_metrics=True,
+                enable_usage_metrics=True,
+            ),
+        )
 
-    # Start audio recording if enabled
-    if args.record:
-        await audiobuffer.start_recording()
+        # Start audio recording if enabled
+        if args.record:
+            await audiobuffer.start_recording()
 
-    # Process text-to-speech
-    await task.queue_frames([TTSSpeakFrame(text_to_speak), EndFrame()])
+        # Process text-to-speech
+        await task.queue_frames([TTSSpeakFrame(text_to_speak), EndFrame()])
 
-    runner = PipelineRunner()
-    await runner.run(task)
+        runner = PipelineRunner()
+        await runner.run(task)
 
-    # Save recorded audio if enabled
-    if args.record:
-        bot_audio = bytes(audiobuffer._bot_audio_buffer)
-        if bot_audio:
-            filename = await prepare_audio_filename(prefix="console")
-            await save_audio_file(bot_audio, filename, audiobuffer.sample_rate, 1)
-        else:
-            logger.warning("No audio data captured for recording")
+        # Save recorded audio if enabled
+        if args.record:
+            bot_audio = bytes(audiobuffer._bot_audio_buffer)
+            if bot_audio:
+                filename = await prepare_audio_filename(prefix="console")
+                await save_audio_file(bot_audio, filename, audiobuffer.sample_rate, 1)
+            else:
+                logger.warning("No audio data captured for recording")
+    except Exception as e:
+        logger.error("An error occurred in console mode: %s", str(e))
+    finally:
+        if session:
+            await session.close()
 
 
 if __name__ == "__main__":
@@ -351,9 +381,15 @@ if __name__ == "__main__":
     parser.add_argument(
         "--console", action="store_true", default=False, help="Enable console mode"
     )
-    parser.add_argument("--text",type=str, help="Text to be converted to speech")
+    parser.add_argument("--text", type=str, help="Text to be converted to speech")
     parser.add_argument(
         "--text-file", type=str, help="Path to the text file to be converted to speech"
+    )
+    parser.add_argument(
+        "--http",
+        action="store_true",
+        help="Use HTTP instead of WebSocket for Rime TTS service communication",
+        default=False,
     )
     args = parser.parse_args()
 
