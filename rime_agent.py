@@ -39,7 +39,7 @@ load_dotenv(override=True)
 
 RIME_VOICE_ID = "glacier"
 RIME_MODEL = "mistv2"
-RIME_URL = "wss://users.rime.ai/ws2"
+RIME_URL = "wss://users-ws.rime.ai/ws2"
 
 RIME_API_KEY = os.getenv("RIME_API_KEY")
 DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
@@ -52,6 +52,11 @@ with the most realistic voices on the market.
 Everything you say will be spoken by a tts model.
 
 You are built using the Pipecat framework, which is a powerful tool for building voice agents.
+"""
+
+DEFAULT_TEXT = """
+There's a 2022 Ferrari F8 Tributo with 7,638 miles, a 2018 Ferrari 488 G. T. B.
+with 9,837 miles, and a 2019 Ferrari G. T. C. 4 Lusso V12 with 17,097 miles.
 """
 
 transport_params: Dict[str, Callable[[], TransportParams]] = {
@@ -322,6 +327,7 @@ async def console_mode(args: argparse.Namespace) -> None:
 
         # Get text input from arguments or use default
         text_to_speak = args.text
+
         if not text_to_speak and args.text_file:
             try:
                 with open(args.text_file, "r", encoding="utf-8") as f:
@@ -330,7 +336,7 @@ async def console_mode(args: argparse.Namespace) -> None:
                 logger.error("Error reading text file: %s", str(e))
                 return
         if not text_to_speak:
-            text_to_speak = "There's a 2022 Ferrari F8 Tributo with 7,638 miles, a 2018 Ferrari 488 G. T. B. with 9,837 miles, and a 2019 Ferrari G. T. C. 4 Lusso V12 with 17,097 miles."
+            text_to_speak = DEFAULT_TEXT
 
         # Set up pipeline with audio recording support
         pipeline = Pipeline([transport.input(), tts, transport.output(), audiobuffer])
