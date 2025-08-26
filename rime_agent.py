@@ -4,6 +4,7 @@ import io
 import logging
 import os
 import wave
+import asyncio
 from typing import Dict, Callable
 
 import aiofiles
@@ -16,13 +17,17 @@ from pipecat.processors.audio.audio_buffer_processor import AudioBufferProcessor
 from pipecat.services.rime.tts import RimeTTSService
 from pipecat.transcriptions.language import Language
 from pipecat.transports.base_transport import BaseTransport, TransportParams
-from pipecat.transports.network.fastapi_websocket import FastAPIWebsocketParams
-from pipecat.transports.services.daily import DailyParams
 from pipecat.services.deepgram.stt import DeepgramSTTService
 from pipecat.services.openai.llm import OpenAILLMService
 from pipecat.processors.aggregators.openai_llm_context import OpenAILLMContext
 from pipecat.audio.vad.silero import SileroVADAnalyzer
+from pipecat.frames.frames import EndFrame, TTSSpeakFrame
 from pipecat.processors.frameworks.rtvi import RTVIProcessor, RTVIObserver
+from pipecat.transports.local.audio import (
+    LocalAudioTransport,
+    LocalAudioTransportParams,
+)
+from pipecat.examples.run import main
 
 
 # Configure logging
@@ -34,7 +39,7 @@ load_dotenv(override=True)
 
 RIME_VOICE_ID = "glacier"
 RIME_MODEL = "mistv2"
-RIME_URL = "wss://users.rime.ai/ws2"
+RIME_URL = "wss://users-ws.rime.ai/ws2"
 
 RIME_API_KEY = os.getenv("RIME_API_KEY")
 DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
@@ -49,6 +54,11 @@ Everything you say will be spoken by a tts model.
 You are built using the Pipecat framework, which is a powerful tool for building voice agents.
 """
 
+DEFAULT_TEXT = """
+There's a 2022 Ferrari F8 Tributo with 7,638 miles, a 2018 Ferrari 488 G. T. B.
+with 9,837 miles, and a 2019 Ferrari G. T. C. 4 Lusso V12 with 17,097 miles.
+"""
+
 transport_params: Dict[str, Callable[[], TransportParams]] = {
     "webrtc": lambda: TransportParams(
         audio_in_enabled=True,
@@ -56,6 +66,22 @@ transport_params: Dict[str, Callable[[], TransportParams]] = {
         vad_analyzer=SileroVADAnalyzer(),
     )
 }
+
+
+async def prepare_audio_filename(prefix: str = "merged") -> str:
+    """
+    Prepare a filename for audio recording with timestamp.
+
+    Args:
+        prefix: Prefix for the filename (default: "merged")
+
+    Returns:
+        str: The prepared filename with path
+    """
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"recordings/{prefix}_{timestamp}.wav"
+    os.makedirs("recordings", exist_ok=True)
+    return filename
 
 
 async def save_audio_file(
@@ -167,8 +193,7 @@ async def run_example(
         audiobuffer = AudioBufferProcessor()
 
         # Set up the pipeline
-        pipeline_params = PipelineParams(
-            enable_metrics=True, enable_usage_metrics=True)
+        pipeline_params = PipelineParams(enable_metrics=True, enable_usage_metrics=True)
 
         task = PipelineTask(
             Pipeline(
@@ -225,44 +250,141 @@ async def run_example(
         raise
     except Exception as e:
         logger.error(
-            "An unexpected error occurred while running the TTS bot: %s", str(
-                e)
+            "An unexpected error occurred while running the TTS bot: %s", str(e)
         )
         logger.exception("Full traceback:")
         raise
 
 
-if __name__ == "__main__":
-    # Import standard utility for running example bot scripts in the Pipecat framework
-    from pipecat.examples.run import main
+async def console_mode(args: argparse.Namespace) -> None:
+    """
+    Console mode function that plays text-to-speech directly in the terminal without web interface.
 
+    This function provides terminal-based text-to-speech playback with:
+    1. Direct text input via --text argument
+    2. Text file input via --text-file argument
+    3. Optional audio recording via --record flag
+
+    Audio will play through your system's default output device. When recording is enabled,
+    the audio is saved in WAV format with a timestamp in the recordings directory.
+    If no text input is provided, a default sample text will be used.
+
+    Args:
+        args: Command line arguments containing text, text-file, and record options
+    """
+    transport = LocalAudioTransport(
+        LocalAudioTransportParams(
+            audio_in_enabled=True,
+            audio_out_enabled=True,
+            vad_analyzer=SileroVADAnalyzer(),
+        )
+    )
+    if not RIME_API_KEY:
+        raise ValueError("RIME_API_KEY environment variable not set")
+
+    # Initialize audio buffer for recording
+    audiobuffer = AudioBufferProcessor()
+
+    # Initialize TTS service
+    tts = RimeTTSService(
+        api_key=RIME_API_KEY,
+        voice_id=RIME_VOICE_ID,
+        model=RIME_MODEL,
+        url=RIME_URL,
+        params=RimeTTSService.InputParams(
+            language=Language.EN,
+            speed_alpha=1.0,
+            reduce_latency=False,
+            pause_between_brackets=True,
+            phonemize_between_brackets=False,
+        ),
+    )
+
+    # Get text input from arguments or use default
+    text_to_speak = args.text
+
+    if not text_to_speak and args.text_file:
+        try:
+            with open(args.text_file, "r", encoding="utf-8") as f:
+                text_to_speak = f.read().strip()
+        except Exception as e:
+            logger.error("Error reading text file: %s", str(e))
+            return
+    if not text_to_speak:
+        text_to_speak = DEFAULT_TEXT
+
+    # Set up pipeline with audio recording support
+    pipeline = Pipeline([transport.input(), tts, transport.output(), audiobuffer])
+    task = PipelineTask(
+        pipeline,
+        params=PipelineParams(
+            enable_metrics=True,
+            enable_usage_metrics=True,
+        ),
+    )
+
+    # Start audio recording if enabled
+    if args.record:
+        await audiobuffer.start_recording()
+
+    # Process text-to-speech
+    await task.queue_frames([TTSSpeakFrame(text_to_speak), EndFrame()])
+
+    runner = PipelineRunner()
+    await runner.run(task)
+
+    # Save recorded audio if enabled
+    if args.record:
+        bot_audio = bytes(audiobuffer._bot_audio_buffer)
+        if bot_audio:
+            filename = await prepare_audio_filename(prefix="console")
+            await save_audio_file(bot_audio, filename, audiobuffer.sample_rate, 1)
+        else:
+            logger.warning("No audio data captured for recording")
+
+
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--record", action="store_true", default=False, help="Enable audio recording"
     )
-    logger.info("Starting the bot")
+    parser.add_argument(
+        "--console", action="store_true", default=False, help="Enable console mode"
+    )
+    parser.add_argument("--text",type=str, help="Text to be converted to speech")
+    parser.add_argument(
+        "--text-file", type=str, help="Path to the text file to be converted to speech"
+    )
+    args = parser.parse_args()
 
-    # Pipecat Examples Runner Utility
-    # -----------------------------
-    #
-    # A standardized utility for running example bot scripts in the Pipecat framework. This utility
-    # enables developers to build and test their bots using consistent patterns across different
-    # transport layers.
-    #
-    # Usage:
-    #     The main function accepts two parameters:
-    #     1. run_example: Your bot's main execution function
-    #     2. transport_params: A dictionary defining available transports:
-    #        - "daily": Daily.co WebRTC
-    #        - "twilio": Twilio
-    #        - "webrtc": Direct WebRTC
-    #
-    # Key Benefits:
-    #     - Transport Agnostic: Write bot logic once, run it with different transports
-    #     - Flexible Testing: Switch between transport layers via command-line arguments
-    #     - Standardized Pattern: Follows Pipecat's foundational example structure
-    #
-    # Note:
-    #     This utility is primarily intended for local development and testing. Use it to
-    #     prototype and validate your Pipecat bots before setting up production infrastructure.
-    main(run_example, transport_params=transport_params, parser=parser)
+    # If text or text-file is provided, automatically enable console mode
+    if args.text or args.text_file:
+        args.console = True
+
+    if args.console:
+        asyncio.run(console_mode(args))
+    else:
+        # Pipecat Examples Runner Utility
+        # -----------------------------
+        #
+        # A standardized utility for running example bot scripts in the Pipecat framework. This utility
+        # enables developers to build and test their bots using consistent patterns across different
+        # transport layers.
+        #
+        # Usage:
+        #     The main function accepts two parameters:
+        #     1. run_example: Your bot's main execution function
+        #     2. transport_params: A dictionary defining available transports:
+        #        - "daily": Daily.co WebRTC
+        #        - "twilio": Twilio
+        #        - "webrtc": Direct WebRTC
+        #
+        # Key Benefits:
+        #     - Transport Agnostic: Write bot logic once, run it with different transports
+        #     - Flexible Testing: Switch between transport layers via command-line arguments
+        #     - Standardized Pattern: Follows Pipecat's foundational example structure
+        #
+        # Note:
+        #     This utility is primarily intended for local development and testing. Use it to
+        #     prototype and validate your Pipecat bots before setting up production infrastructure.
+        main(run_example, transport_params=transport_params, parser=parser)
