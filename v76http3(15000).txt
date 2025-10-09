@@ -1,0 +1,487 @@
+2025-10-09 22:24:44.256 | ERROR    | pipecat.processors.frame_processor:__input_frame_task_handler:659 - SmallWebRTCOutputTransport#0: error processing frame: buffer size must be a multiple of element size
+Traceback (most recent call last):
+
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/rime_agent.py", line 428, in <module>
+    main(run_example, transport_params=transport_params, parser=parser)
+    │    │                             │                        └ ArgumentParser(prog='rime_agent.py', usage=None, description=None, formatter_class=<class 'argparse.HelpFormatter'>, conflict...
+    │    │                             └ {'webrtc': <function <lambda> at 0x1051f9580>}
+    │    └ <function run_example at 0x3036591c0>
+    └ <function main at 0x303658fe0>
+
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/examples/run.py", line 437, in main
+    run_main(run_example, args, transport_params)
+    │        │            │     └ {'webrtc': <function <lambda> at 0x1051f9580>}
+    │        │            └ Namespace(record=False, console=False, text=None, text_file=None, http=True, host='localhost', port=7860, transport='webrtc',...
+    │        └ <function run_example at 0x3036591c0>
+    └ <function run_main at 0x303658f40>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/examples/run.py", line 385, in run_main
+    run_example_webrtc(run_example, args, transport_params)
+    │                  │            │     └ {'webrtc': <function <lambda> at 0x1051f9580>}
+    │                  │            └ Namespace(record=False, console=False, text=None, text_file=None, http=True, host='localhost', port=7860, transport='webrtc',...
+    │                  └ <function run_example at 0x3036591c0>
+    └ <function run_example_webrtc at 0x303658e00>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/examples/run.py", line 285, in run_example_webrtc
+    uvicorn.run(app, host=args.host, port=args.port)
+    │       │   │         │    │          │    └ 7860
+    │       │   │         │    │          └ Namespace(record=False, console=False, text=None, text_file=None, http=True, host='localhost', port=7860, transport='webrtc',...
+    │       │   │         │    └ 'localhost'
+    │       │   │         └ Namespace(record=False, console=False, text=None, text_file=None, http=True, host='localhost', port=7860, transport='webrtc',...
+    │       │   └ <fastapi.applications.FastAPI object at 0x169991a10>
+    │       └ <function run at 0x16b82a3e0>
+    └ <module 'uvicorn' from '/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/uvicorn/__init__...
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/uvicorn/main.py", line 580, in run
+    server.run()
+    │      └ <function Server.run at 0x16b82a5c0>
+    └ <uvicorn.server.Server object at 0x168dcfb50>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/uvicorn/server.py", line 67, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           │       │   │    │             └ None
+           │       │   │    └ <function Server.serve at 0x16b82a660>
+           │       │   └ <uvicorn.server.Server object at 0x168dcfb50>
+           │       └ <function run at 0x105cf53a0>
+           └ <module 'asyncio' from '/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/asyncio/__init__.py'>
+  File "/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/asyncio/runners.py", line 190, in run
+    return runner.run(main)
+           │      │   └ <coroutine object Server.serve at 0x16c1d0040>
+           │      └ <function Runner.run at 0x105cf5760>
+           └ <asyncio.runners.Runner object at 0x3035cb7d0>
+  File "/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           │    │     │                  └ <Task pending name='Task-1' coro=<Server.serve() running at /Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/pytho...
+           │    │     └ <cyfunction Loop.run_until_complete at 0x16b8faa80>
+           │    └ <uvloop.Loop running=True closed=False debug=False>
+           └ <asyncio.runners.Runner object at 0x3035cb7d0>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/utils/asyncio/task_manager.py", line 236, in run_coroutine
+    await coroutine
+          └ <coroutine object FrameProcessor.__input_frame_task_handler at 0x30859f010>
+> File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/processors/frame_processor.py", line 654, in __input_frame_task_handler
+    await self.process_frame(frame, direction)
+          │    │             │      └ <FrameDirection.DOWNSTREAM: 1>
+          │    │             └ TTSAudioRawFrame(audio=b'\xa4\x18\xee\x19N\x1aE\x1cG\x1f\xb8 T \x84\x1f.\x1eF\x1cD\x19\xf9\x14\xe7\x10\x05\r^\x088\x03\x90\xf...
+          │    └ <function BaseOutputTransport.process_frame at 0x169a5dbc0>
+          └ <pipecat.transports.network.small_webrtc.SmallWebRTCOutputTransport object at 0x303df3bd0>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/transports/base_output.py", line 285, in process_frame
+    await self._handle_frame(frame)
+          │    │             └ TTSAudioRawFrame(audio=b'\xa4\x18\xee\x19N\x1aE\x1cG\x1f\xb8 T \x84\x1f.\x1eF\x1cD\x19\xf9\x14\xe7\x10\x05\r^\x088\x03\x90\xf...
+          │    └ <function BaseOutputTransport._handle_frame at 0x169a5dc60>
+          └ <pipecat.transports.network.small_webrtc.SmallWebRTCOutputTransport object at 0x303df3bd0>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/transports/base_output.py", line 309, in _handle_frame
+    await sender.handle_audio_frame(frame)
+          │      │                  └ TTSAudioRawFrame(audio=b'\xa4\x18\xee\x19N\x1aE\x1cG\x1f\xb8 T \x84\x1f.\x1eF\x1cD\x19\xf9\x14\xe7\x10\x05\r^\x088\x03\x90\xf...
+          │      └ <function BaseOutputTransport.MediaSender.handle_audio_frame at 0x169a5e200>
+          └ <pipecat.transports.base_output.BaseOutputTransport.MediaSender object at 0x3035c5890>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/transports/base_output.py", line 488, in handle_audio_frame
+    resampled = await self._resampler.resample(
+                      │    │          └ <function SOXRStreamAudioResampler.resample at 0x13efe11c0>
+                      │    └ <pipecat.audio.resamplers.soxr_stream_resampler.SOXRStreamAudioResampler object at 0x3085c1e10>
+                      └ <pipecat.transports.base_output.BaseOutputTransport.MediaSender object at 0x3035c5890>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/audio/resamplers/soxr_stream_resampler.py", line 98, in resample
+    audio_data = np.frombuffer(audio, dtype=np.int16)
+                 │  │          │            │  └ <class 'numpy.int16'>
+                 │  │          │            └ <module 'numpy' from '/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/numpy/__init__.py'>
+                 │  │          └ b'\xa4\x18\xee\x19N\x1aE\x1cG\x1f\xb8 T \x84\x1f.\x1eF\x1cD\x19\xf9\x14\xe7\x10\x05\r^\x088\x03\x90\xffW\xfc\xa0\xf7\x98\xf2\...
+                 │  └ <built-in function frombuffer>
+                 └ <module 'numpy' from '/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/numpy/__init__.py'>
+
+ValueError: buffer size must be a multiple of element size
+2025-10-09 22:24:44.259 | WARNING  | pipecat.pipeline.task:_process_up_queue:694 - Something went wrong: ErrorFrame#6(error: buffer size must be a multiple of element size, fatal: False)
+2025-10-09 22:24:44.262 | ERROR    | pipecat.processors.frame_processor:__input_frame_task_handler:659 - SmallWebRTCOutputTransport#0: error processing frame: buffer size must be a multiple of element size
+Traceback (most recent call last):
+
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/rime_agent.py", line 428, in <module>
+    main(run_example, transport_params=transport_params, parser=parser)
+    │    │                             │                        └ ArgumentParser(prog='rime_agent.py', usage=None, description=None, formatter_class=<class 'argparse.HelpFormatter'>, conflict...
+    │    │                             └ {'webrtc': <function <lambda> at 0x1051f9580>}
+    │    └ <function run_example at 0x3036591c0>
+    └ <function main at 0x303658fe0>
+
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/examples/run.py", line 437, in main
+    run_main(run_example, args, transport_params)
+    │        │            │     └ {'webrtc': <function <lambda> at 0x1051f9580>}
+    │        │            └ Namespace(record=False, console=False, text=None, text_file=None, http=True, host='localhost', port=7860, transport='webrtc',...
+    │        └ <function run_example at 0x3036591c0>
+    └ <function run_main at 0x303658f40>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/examples/run.py", line 385, in run_main
+    run_example_webrtc(run_example, args, transport_params)
+    │                  │            │     └ {'webrtc': <function <lambda> at 0x1051f9580>}
+    │                  │            └ Namespace(record=False, console=False, text=None, text_file=None, http=True, host='localhost', port=7860, transport='webrtc',...
+    │                  └ <function run_example at 0x3036591c0>
+    └ <function run_example_webrtc at 0x303658e00>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/examples/run.py", line 285, in run_example_webrtc
+    uvicorn.run(app, host=args.host, port=args.port)
+    │       │   │         │    │          │    └ 7860
+    │       │   │         │    │          └ Namespace(record=False, console=False, text=None, text_file=None, http=True, host='localhost', port=7860, transport='webrtc',...
+    │       │   │         │    └ 'localhost'
+    │       │   │         └ Namespace(record=False, console=False, text=None, text_file=None, http=True, host='localhost', port=7860, transport='webrtc',...
+    │       │   └ <fastapi.applications.FastAPI object at 0x169991a10>
+    │       └ <function run at 0x16b82a3e0>
+    └ <module 'uvicorn' from '/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/uvicorn/__init__...
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/uvicorn/main.py", line 580, in run
+    server.run()
+    │      └ <function Server.run at 0x16b82a5c0>
+    └ <uvicorn.server.Server object at 0x168dcfb50>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/uvicorn/server.py", line 67, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           │       │   │    │             └ None
+           │       │   │    └ <function Server.serve at 0x16b82a660>
+           │       │   └ <uvicorn.server.Server object at 0x168dcfb50>
+           │       └ <function run at 0x105cf53a0>
+           └ <module 'asyncio' from '/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/asyncio/__init__.py'>
+  File "/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/asyncio/runners.py", line 190, in run
+    return runner.run(main)
+           │      │   └ <coroutine object Server.serve at 0x16c1d0040>
+           │      └ <function Runner.run at 0x105cf5760>
+           └ <asyncio.runners.Runner object at 0x3035cb7d0>
+  File "/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           │    │     │                  └ <Task pending name='Task-1' coro=<Server.serve() running at /Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/pytho...
+           │    │     └ <cyfunction Loop.run_until_complete at 0x16b8faa80>
+           │    └ <uvloop.Loop running=True closed=False debug=False>
+           └ <asyncio.runners.Runner object at 0x3035cb7d0>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/utils/asyncio/task_manager.py", line 236, in run_coroutine
+    await coroutine
+          └ <coroutine object FrameProcessor.__input_frame_task_handler at 0x30859f010>
+> File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/processors/frame_processor.py", line 654, in __input_frame_task_handler
+    await self.process_frame(frame, direction)
+          │    │             │      └ <FrameDirection.DOWNSTREAM: 1>
+          │    │             └ TTSAudioRawFrame(audio=b'\xe4,\xe5G\xe7\x9d\xea\xf7\xef\x8c\xf7\xaa\xfd&\x00\xa1\x00\xfc\xff\xa8\x00\xd5\x04\xf2\n\xb4\x10\xf...
+          │    └ <function BaseOutputTransport.process_frame at 0x169a5dbc0>
+          └ <pipecat.transports.network.small_webrtc.SmallWebRTCOutputTransport object at 0x303df3bd0>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/transports/base_output.py", line 285, in process_frame
+    await self._handle_frame(frame)
+          │    │             └ TTSAudioRawFrame(audio=b'\xe4,\xe5G\xe7\x9d\xea\xf7\xef\x8c\xf7\xaa\xfd&\x00\xa1\x00\xfc\xff\xa8\x00\xd5\x04\xf2\n\xb4\x10\xf...
+          │    └ <function BaseOutputTransport._handle_frame at 0x169a5dc60>
+          └ <pipecat.transports.network.small_webrtc.SmallWebRTCOutputTransport object at 0x303df3bd0>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/transports/base_output.py", line 309, in _handle_frame
+    await sender.handle_audio_frame(frame)
+          │      │                  └ TTSAudioRawFrame(audio=b'\xe4,\xe5G\xe7\x9d\xea\xf7\xef\x8c\xf7\xaa\xfd&\x00\xa1\x00\xfc\xff\xa8\x00\xd5\x04\xf2\n\xb4\x10\xf...
+          │      └ <function BaseOutputTransport.MediaSender.handle_audio_frame at 0x169a5e200>
+          └ <pipecat.transports.base_output.BaseOutputTransport.MediaSender object at 0x3035c5890>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/transports/base_output.py", line 488, in handle_audio_frame
+    resampled = await self._resampler.resample(
+                      │    │          └ <function SOXRStreamAudioResampler.resample at 0x13efe11c0>
+                      │    └ <pipecat.audio.resamplers.soxr_stream_resampler.SOXRStreamAudioResampler object at 0x3085c1e10>
+                      └ <pipecat.transports.base_output.BaseOutputTransport.MediaSender object at 0x3035c5890>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/audio/resamplers/soxr_stream_resampler.py", line 98, in resample
+    audio_data = np.frombuffer(audio, dtype=np.int16)
+                 │  │          │            │  └ <class 'numpy.int16'>
+                 │  │          │            └ <module 'numpy' from '/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/numpy/__init__.py'>
+                 │  │          └ b'\xe4,\xe5G\xe7\x9d\xea\xf7\xef\x8c\xf7\xaa\xfd&\x00\xa1\x00\xfc\xff\xa8\x00\xd5\x04\xf2\n\xb4\x10\xf5\x13\xac\x13\xe2\x10-\...
+                 │  └ <built-in function frombuffer>
+                 └ <module 'numpy' from '/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/numpy/__init__.py'>
+
+ValueError: buffer size must be a multiple of element size
+2025-10-09 22:24:44.266 | WARNING  | pipecat.pipeline.task:_process_up_queue:694 - Something went wrong: ErrorFrame#7(error: buffer size must be a multiple of element size, fatal: False)
+2025-10-09 22:24:44.460 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_processing_metrics:152 - RimeHttpTTSService#0 processing time: 0.7363419532775879
+2025-10-09 22:24:44.461 | DEBUG    | pipecat.services.rime.tts:run_tts:507 - RimeHttpTTSService#0: Generating TTS [And so, Ellie's story continues to inspire dreamers and inventors everywhere, proving that with a little curiosity and courage, anything is possible.]
+2025-10-09 22:24:44.949 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:start_tts_usage_metrics:191 - RimeHttpTTSService#0 usage characters: 149
+2025-10-09 22:24:44.950 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_ttfb_metrics:131 - RimeHttpTTSService#0 TTFB: 0.4886128902435303
+2025-10-09 22:24:44.985 | ERROR    | pipecat.processors.frame_processor:__input_frame_task_handler:659 - SmallWebRTCOutputTransport#0: error processing frame: buffer size must be a multiple of element size
+Traceback (most recent call last):
+
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/rime_agent.py", line 428, in <module>
+    main(run_example, transport_params=transport_params, parser=parser)
+    │    │                             │                        └ ArgumentParser(prog='rime_agent.py', usage=None, description=None, formatter_class=<class 'argparse.HelpFormatter'>, conflict...
+    │    │                             └ {'webrtc': <function <lambda> at 0x1051f9580>}
+    │    └ <function run_example at 0x3036591c0>
+    └ <function main at 0x303658fe0>
+
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/examples/run.py", line 437, in main
+    run_main(run_example, args, transport_params)
+    │        │            │     └ {'webrtc': <function <lambda> at 0x1051f9580>}
+    │        │            └ Namespace(record=False, console=False, text=None, text_file=None, http=True, host='localhost', port=7860, transport='webrtc',...
+    │        └ <function run_example at 0x3036591c0>
+    └ <function run_main at 0x303658f40>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/examples/run.py", line 385, in run_main
+    run_example_webrtc(run_example, args, transport_params)
+    │                  │            │     └ {'webrtc': <function <lambda> at 0x1051f9580>}
+    │                  │            └ Namespace(record=False, console=False, text=None, text_file=None, http=True, host='localhost', port=7860, transport='webrtc',...
+    │                  └ <function run_example at 0x3036591c0>
+    └ <function run_example_webrtc at 0x303658e00>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/examples/run.py", line 285, in run_example_webrtc
+    uvicorn.run(app, host=args.host, port=args.port)
+    │       │   │         │    │          │    └ 7860
+    │       │   │         │    │          └ Namespace(record=False, console=False, text=None, text_file=None, http=True, host='localhost', port=7860, transport='webrtc',...
+    │       │   │         │    └ 'localhost'
+    │       │   │         └ Namespace(record=False, console=False, text=None, text_file=None, http=True, host='localhost', port=7860, transport='webrtc',...
+    │       │   └ <fastapi.applications.FastAPI object at 0x169991a10>
+    │       └ <function run at 0x16b82a3e0>
+    └ <module 'uvicorn' from '/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/uvicorn/__init__...
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/uvicorn/main.py", line 580, in run
+    server.run()
+    │      └ <function Server.run at 0x16b82a5c0>
+    └ <uvicorn.server.Server object at 0x168dcfb50>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/uvicorn/server.py", line 67, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           │       │   │    │             └ None
+           │       │   │    └ <function Server.serve at 0x16b82a660>
+           │       │   └ <uvicorn.server.Server object at 0x168dcfb50>
+           │       └ <function run at 0x105cf53a0>
+           └ <module 'asyncio' from '/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/asyncio/__init__.py'>
+  File "/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/asyncio/runners.py", line 190, in run
+    return runner.run(main)
+           │      │   └ <coroutine object Server.serve at 0x16c1d0040>
+           │      └ <function Runner.run at 0x105cf5760>
+           └ <asyncio.runners.Runner object at 0x3035cb7d0>
+  File "/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           │    │     │                  └ <Task pending name='Task-1' coro=<Server.serve() running at /Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/pytho...
+           │    │     └ <cyfunction Loop.run_until_complete at 0x16b8faa80>
+           │    └ <uvloop.Loop running=True closed=False debug=False>
+           └ <asyncio.runners.Runner object at 0x3035cb7d0>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/utils/asyncio/task_manager.py", line 236, in run_coroutine
+    await coroutine
+          └ <coroutine object FrameProcessor.__input_frame_task_handler at 0x30859f010>
+> File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/processors/frame_processor.py", line 654, in __input_frame_task_handler
+    await self.process_frame(frame, direction)
+          │    │             │      └ <FrameDirection.DOWNSTREAM: 1>
+          │    │             └ TTSAudioRawFrame(audio=b'\xe0\x01\xc1\x00I\x00\xae\xff\xc7\xfe\xbc\xfd\xad\xfc\xcf\xfb}\xfa^\xf9\xe1\xf8\xf2\xf7\x9c\xf6\xe0\...
+          │    └ <function BaseOutputTransport.process_frame at 0x169a5dbc0>
+          └ <pipecat.transports.network.small_webrtc.SmallWebRTCOutputTransport object at 0x303df3bd0>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/transports/base_output.py", line 285, in process_frame
+    await self._handle_frame(frame)
+          │    │             └ TTSAudioRawFrame(audio=b'\xe0\x01\xc1\x00I\x00\xae\xff\xc7\xfe\xbc\xfd\xad\xfc\xcf\xfb}\xfa^\xf9\xe1\xf8\xf2\xf7\x9c\xf6\xe0\...
+          │    └ <function BaseOutputTransport._handle_frame at 0x169a5dc60>
+          └ <pipecat.transports.network.small_webrtc.SmallWebRTCOutputTransport object at 0x303df3bd0>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/transports/base_output.py", line 309, in _handle_frame
+    await sender.handle_audio_frame(frame)
+          │      │                  └ TTSAudioRawFrame(audio=b'\xe0\x01\xc1\x00I\x00\xae\xff\xc7\xfe\xbc\xfd\xad\xfc\xcf\xfb}\xfa^\xf9\xe1\xf8\xf2\xf7\x9c\xf6\xe0\...
+          │      └ <function BaseOutputTransport.MediaSender.handle_audio_frame at 0x169a5e200>
+          └ <pipecat.transports.base_output.BaseOutputTransport.MediaSender object at 0x3035c5890>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/transports/base_output.py", line 488, in handle_audio_frame
+    resampled = await self._resampler.resample(
+                      │    │          └ <function SOXRStreamAudioResampler.resample at 0x13efe11c0>
+                      │    └ <pipecat.audio.resamplers.soxr_stream_resampler.SOXRStreamAudioResampler object at 0x3085c1e10>
+                      └ <pipecat.transports.base_output.BaseOutputTransport.MediaSender object at 0x3035c5890>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/audio/resamplers/soxr_stream_resampler.py", line 98, in resample
+    audio_data = np.frombuffer(audio, dtype=np.int16)
+                 │  │          │            │  └ <class 'numpy.int16'>
+                 │  │          │            └ <module 'numpy' from '/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/numpy/__init__.py'>
+                 │  │          └ b'\xe0\x01\xc1\x00I\x00\xae\xff\xc7\xfe\xbc\xfd\xad\xfc\xcf\xfb}\xfa^\xf9\xe1\xf8\xf2\xf7\x9c\xf6\xe0\xf4&\xf3x\xf1V\xef\x87\...
+                 │  └ <built-in function frombuffer>
+                 └ <module 'numpy' from '/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/numpy/__init__.py'>
+
+ValueError: buffer size must be a multiple of element size
+2025-10-09 22:24:44.987 | WARNING  | pipecat.pipeline.task:_process_up_queue:694 - Something went wrong: ErrorFrame#8(error: buffer size must be a multiple of element size, fatal: False)
+2025-10-09 22:24:45.170 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_processing_metrics:152 - RimeHttpTTSService#0 processing time: 0.7087101936340332
+2025-10-09 22:24:45.179 | ERROR    | pipecat.processors.frame_processor:__input_frame_task_handler:659 - SmallWebRTCOutputTransport#0: error processing frame: buffer size must be a multiple of element size
+Traceback (most recent call last):
+
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/rime_agent.py", line 428, in <module>
+    main(run_example, transport_params=transport_params, parser=parser)
+    │    │                             │                        └ ArgumentParser(prog='rime_agent.py', usage=None, description=None, formatter_class=<class 'argparse.HelpFormatter'>, conflict...
+    │    │                             └ {'webrtc': <function <lambda> at 0x1051f9580>}
+    │    └ <function run_example at 0x3036591c0>
+    └ <function main at 0x303658fe0>
+
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/examples/run.py", line 437, in main
+    run_main(run_example, args, transport_params)
+    │        │            │     └ {'webrtc': <function <lambda> at 0x1051f9580>}
+    │        │            └ Namespace(record=False, console=False, text=None, text_file=None, http=True, host='localhost', port=7860, transport='webrtc',...
+    │        └ <function run_example at 0x3036591c0>
+    └ <function run_main at 0x303658f40>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/examples/run.py", line 385, in run_main
+    run_example_webrtc(run_example, args, transport_params)
+    │                  │            │     └ {'webrtc': <function <lambda> at 0x1051f9580>}
+    │                  │            └ Namespace(record=False, console=False, text=None, text_file=None, http=True, host='localhost', port=7860, transport='webrtc',...
+    │                  └ <function run_example at 0x3036591c0>
+    └ <function run_example_webrtc at 0x303658e00>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/examples/run.py", line 285, in run_example_webrtc
+    uvicorn.run(app, host=args.host, port=args.port)
+    │       │   │         │    │          │    └ 7860
+    │       │   │         │    │          └ Namespace(record=False, console=False, text=None, text_file=None, http=True, host='localhost', port=7860, transport='webrtc',...
+    │       │   │         │    └ 'localhost'
+    │       │   │         └ Namespace(record=False, console=False, text=None, text_file=None, http=True, host='localhost', port=7860, transport='webrtc',...
+    │       │   └ <fastapi.applications.FastAPI object at 0x169991a10>
+    │       └ <function run at 0x16b82a3e0>
+    └ <module 'uvicorn' from '/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/uvicorn/__init__...
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/uvicorn/main.py", line 580, in run
+    server.run()
+    │      └ <function Server.run at 0x16b82a5c0>
+    └ <uvicorn.server.Server object at 0x168dcfb50>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/uvicorn/server.py", line 67, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           │       │   │    │             └ None
+           │       │   │    └ <function Server.serve at 0x16b82a660>
+           │       │   └ <uvicorn.server.Server object at 0x168dcfb50>
+           │       └ <function run at 0x105cf53a0>
+           └ <module 'asyncio' from '/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/asyncio/__init__.py'>
+  File "/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/asyncio/runners.py", line 190, in run
+    return runner.run(main)
+           │      │   └ <coroutine object Server.serve at 0x16c1d0040>
+           │      └ <function Runner.run at 0x105cf5760>
+           └ <asyncio.runners.Runner object at 0x3035cb7d0>
+  File "/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           │    │     │                  └ <Task pending name='Task-1' coro=<Server.serve() running at /Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/pytho...
+           │    │     └ <cyfunction Loop.run_until_complete at 0x16b8faa80>
+           │    └ <uvloop.Loop running=True closed=False debug=False>
+           └ <asyncio.runners.Runner object at 0x3035cb7d0>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/utils/asyncio/task_manager.py", line 236, in run_coroutine
+    await coroutine
+          └ <coroutine object FrameProcessor.__input_frame_task_handler at 0x30859f010>
+> File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/processors/frame_processor.py", line 654, in __input_frame_task_handler
+    await self.process_frame(frame, direction)
+          │    │             │      └ <FrameDirection.DOWNSTREAM: 1>
+          │    │             └ TTSAudioRawFrame(audio=b'\xfa\xe1\xf9\xcf\xf9\n\xfa\xb3\xfa\x02\xfc\xac\xfdo\xffM\x01\x18\x03\xd2\x04\x85\x06\xea\x07\xdf\x08...
+          │    └ <function BaseOutputTransport.process_frame at 0x169a5dbc0>
+          └ <pipecat.transports.network.small_webrtc.SmallWebRTCOutputTransport object at 0x303df3bd0>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/transports/base_output.py", line 285, in process_frame
+    await self._handle_frame(frame)
+          │    │             └ TTSAudioRawFrame(audio=b'\xfa\xe1\xf9\xcf\xf9\n\xfa\xb3\xfa\x02\xfc\xac\xfdo\xffM\x01\x18\x03\xd2\x04\x85\x06\xea\x07\xdf\x08...
+          │    └ <function BaseOutputTransport._handle_frame at 0x169a5dc60>
+          └ <pipecat.transports.network.small_webrtc.SmallWebRTCOutputTransport object at 0x303df3bd0>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/transports/base_output.py", line 309, in _handle_frame
+    await sender.handle_audio_frame(frame)
+          │      │                  └ TTSAudioRawFrame(audio=b'\xfa\xe1\xf9\xcf\xf9\n\xfa\xb3\xfa\x02\xfc\xac\xfdo\xffM\x01\x18\x03\xd2\x04\x85\x06\xea\x07\xdf\x08...
+          │      └ <function BaseOutputTransport.MediaSender.handle_audio_frame at 0x169a5e200>
+          └ <pipecat.transports.base_output.BaseOutputTransport.MediaSender object at 0x3035c5890>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/transports/base_output.py", line 488, in handle_audio_frame
+    resampled = await self._resampler.resample(
+                      │    │          └ <function SOXRStreamAudioResampler.resample at 0x13efe11c0>
+                      │    └ <pipecat.audio.resamplers.soxr_stream_resampler.SOXRStreamAudioResampler object at 0x3085c1e10>
+                      └ <pipecat.transports.base_output.BaseOutputTransport.MediaSender object at 0x3035c5890>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/audio/resamplers/soxr_stream_resampler.py", line 98, in resample
+    audio_data = np.frombuffer(audio, dtype=np.int16)
+                 │  │          │            │  └ <class 'numpy.int16'>
+                 │  │          │            └ <module 'numpy' from '/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/numpy/__init__.py'>
+                 │  │          └ b'\xfa\xe1\xf9\xcf\xf9\n\xfa\xb3\xfa\x02\xfc\xac\xfdo\xffM\x01\x18\x03\xd2\x04\x85\x06\xea\x07\xdf\x08v\t\x8e\tC\t\xb6\x08\xb...
+                 │  └ <built-in function frombuffer>
+                 └ <module 'numpy' from '/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/numpy/__init__.py'>
+
+ValueError: buffer size must be a multiple of element size
+2025-10-09 22:24:45.185 | WARNING  | pipecat.pipeline.task:_process_up_queue:694 - Something went wrong: ErrorFrame#9(error: buffer size must be a multiple of element size, fatal: False)
+^CINFO:     Shutting down
+INFO:     Waiting for background tasks to complete. (CTRL+C to force quit)
+^CINFO:     Finished server process [32458]
+ERROR:    Traceback (most recent call last):
+  File "/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/asyncio/runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "uvloop/loop.pyx", line 1512, in uvloop.loop.Loop.run_until_complete
+  File "uvloop/loop.pyx", line 1505, in uvloop.loop.Loop.run_until_complete
+  File "uvloop/loop.pyx", line 1379, in uvloop.loop.Loop.run_forever
+  File "uvloop/loop.pyx", line 557, in uvloop.loop.Loop._run
+  File "uvloop/loop.pyx", line 476, in uvloop.loop.Loop._on_idle
+  File "uvloop/cbhandles.pyx", line 83, in uvloop.loop.Handle._run
+  File "uvloop/cbhandles.pyx", line 63, in uvloop.loop.Handle._run
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/uvicorn/server.py", line 70, in serve
+    with self.capture_signals():
+  File "/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/contextlib.py", line 144, in __exit__
+    next(self.gen)
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/uvicorn/server.py", line 331, in capture_signals
+    signal.raise_signal(captured_signal)
+  File "/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/asyncio/runners.py", line 157, in _on_sigint
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/starlette/routing.py", line 699, in lifespan
+    await receive()
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/uvicorn/lifespan/on.py", line 137, in receive
+    return await self.receive_queue.get()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/asyncio/queues.py", line 158, in get
+    await getter
+asyncio.exceptions.CancelledError
+
+2025-10-09 22:24:54.022 | DEBUG    | pipecat.pipeline.task:_cancel:497 - Canceling pipeline task PipelineTask#0
+2025-10-09 22:24:54.022 | INFO     | pipecat.transports.network.small_webrtc:disconnect:411 - Disconnecting to Small WebRTC
+ERROR:asyncio:Task exception was never retrieved
+future: <Task finished name='Task-8004' coro=<RTCSctpTransport._data_channel_flush() done, defined at /Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/aiortc/rtcsctptransport.py:1642> exception=ConnectionError('Cannot send encrypted data, not connected')>
+Traceback (most recent call last):
+  File "/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/asyncio/runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "uvloop/loop.pyx", line 1512, in uvloop.loop.Loop.run_until_complete
+  File "uvloop/loop.pyx", line 1505, in uvloop.loop.Loop.run_until_complete
+  File "uvloop/loop.pyx", line 1379, in uvloop.loop.Loop.run_forever
+  File "uvloop/loop.pyx", line 557, in uvloop.loop.Loop._run
+  File "uvloop/loop.pyx", line 476, in uvloop.loop.Loop._on_idle
+  File "uvloop/cbhandles.pyx", line 83, in uvloop.loop.Handle._run
+  File "uvloop/cbhandles.pyx", line 63, in uvloop.loop.Handle._run
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/uvicorn/server.py", line 70, in serve
+    with self.capture_signals():
+  File "/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/contextlib.py", line 144, in __exit__
+    next(self.gen)
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/uvicorn/server.py", line 331, in capture_signals
+    signal.raise_signal(captured_signal)
+  File "/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/asyncio/runners.py", line 157, in _on_sigint
+    raise KeyboardInterrupt()
+KeyboardInterrupt
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/aiortc/rtcsctptransport.py", line 1673, in _data_channel_flush
+    await self._send(
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/aiortc/rtcsctptransport.py", line 1330, in _send
+    await self._transmit()
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/aiortc/rtcsctptransport.py", line 1553, in _transmit
+    await self._send_chunk(chunk)
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/aiortc/rtcsctptransport.py", line 1337, in _send_chunk
+    await self.__transport._send_data(
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/aiortc/rtcdtlstransport.py", line 654, in _send_data
+    raise ConnectionError("Cannot send encrypted data, not connected")
+ConnectionError: Cannot send encrypted data, not connected
+2025-10-09 22:24:54.026 | DEBUG    | pipecat.transports.network.webrtc_connection:on_iceconnectionstatechange:289 - ICE connection state is closed, connection is closed
+2025-10-09 22:24:54.026 | DEBUG    | pipecat.transports.network.webrtc_connection:_handle_new_connection_state:454 - Connection state changed to: closed
+2025-10-09 22:24:54.026 | INFO     | pipecat.examples.run:handle_disconnected:252 - Discarding peer connection for pc_id: SmallWebRTCConnection#0
+2025-10-09 22:24:54.026 | DEBUG    | pipecat.transports.network.small_webrtc:on_closed:246 - Client connection closed.
+INFO:rime-pipecat:Client disconnected
+^CERROR:asyncio:Task was destroyed but it is pending!
+task: <Task cancelling name='Task-4' coro=<RequestResponseCycle.run_asgi() running at /Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/uvicorn/protocols/http/httptools_impl.py:409> wait_for=<Future pending cb=[Task.task_wakeup()]> cb=[set.discard(), gather.<locals>._done_callback() at /Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/asyncio/tasks.py:754]>
+Exception ignored in: <coroutine object ProxyHeadersMiddleware.__call__ at 0x3035ad800>
+Traceback (most recent call last):
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/fastapi/applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/starlette/applications.py", line 112, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py", line 187, in __call__
+    raise exc
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/starlette/middleware/errors.py", line 165, in __call__
+    await self.app(scope, receive, _send)
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/starlette/middleware/exceptions.py", line 62, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/starlette/routing.py", line 714, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/starlette/routing.py", line 734, in app
+    await route.handle(scope, receive, send)
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/starlette/routing.py", line 288, in handle
+    await self.app(scope, receive, send)
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/starlette/routing.py", line 76, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/starlette/routing.py", line 74, in app
+    await response(scope, receive, send)
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/starlette/responses.py", line 160, in __call__
+    await self.background()
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/starlette/background.py", line 41, in __call__
+    await task()
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/starlette/background.py", line 26, in __call__
+    await self.func(*self.args, **self.kwargs)
+RuntimeError: coroutine ignored GeneratorExit
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/uvicorn/protocols/http/httptools_impl.py", line 409, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+GeneratorExit

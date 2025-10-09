@@ -138,7 +138,8 @@ def initialize_tts_service(
             api_key=RIME_API_KEY,
             voice_id=RIME_VOICE_ID,
             aiohttp_session=aiohttp_session,
-            model=RIME_MODEL,
+            model=RIME_MODEL,     
+            sample_rate=8000,
         )
     else:
         logger.info("Using Rime WebSocket service")
@@ -153,6 +154,7 @@ def initialize_tts_service(
                 reduce_latency=False,
                 pause_between_brackets=True,
                 phonemize_between_brackets=False,
+                sample_rate=8000,
             ),
         )
 

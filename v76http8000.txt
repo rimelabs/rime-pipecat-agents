@@ -1,0 +1,523 @@
+(rime-pipecate-agents) gokuljs@Gokuls-MacBook-Pro rime-pipecat-agents % uv run rime_agent.py --http
+2025-10-09 21:37:58.665 | INFO     | pipecat:<module>:14 - ᓚᘏᗢ Pipecat 0.0.76 (Python 3.11.1 (main, Apr 16 2024, 12:05:34) [Clang 15.0.0 (clang-1500.3.9.4)]) ᓚᘏᗢ
+2025-10-09 21:38:00.577 | INFO     | pipecat.examples.run:run_example_webrtc:203 - Running example with SmallWebRTCTransport...
+Looking for dist directory at: /Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat_ai_small_webrtc_prebuilt/client/dist
+INFO:     Started server process [24860]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://localhost:7860 (Press CTRL+C to quit)
+INFO:     ::1:63103 - "GET / HTTP/1.1" 307 Temporary Redirect
+2025-10-09 21:38:05.319 | DEBUG    | pipecat.transports.network.webrtc_connection:_initialize:231 - Initializing new peer connection
+2025-10-09 21:38:05.345 | DEBUG    | pipecat.transports.network.webrtc_connection:_create_answer:317 - Creating answer
+2025-10-09 21:38:05.346 | DEBUG    | pipecat.transports.network.webrtc_connection:on_track:299 - Track audio received
+2025-10-09 21:38:05.346 | DEBUG    | pipecat.transports.network.webrtc_connection:on_track:299 - Track video received
+2025-10-09 21:38:05.348 | DEBUG    | pipecat.transports.network.webrtc_connection:on_icegatheringstatechange:295 - ICE gathering state is gathering
+2025-10-09 21:38:05.348 | DEBUG    | pipecat.transports.network.webrtc_connection:on_icegatheringstatechange:295 - ICE gathering state is complete
+2025-10-09 21:38:05.348 | DEBUG    | pipecat.transports.network.webrtc_connection:_create_answer:320 - Setting the answer after the local description is created
+2025-10-09 21:38:05.349 | DEBUG    | pipecat.audio.vad.silero:__init__:147 - Loading Silero VAD model...
+2025-10-09 21:38:05.451 | DEBUG    | pipecat.audio.vad.silero:__init__:169 - Loaded Silero VAD
+INFO:     ::1:63103 - "POST /api/offer HTTP/1.1" 200 OK
+INFO:rime-pipecat:Starting Rime TTS bot example
+INFO:rime-pipecat:Initializing Deepgram STT service
+INFO:rime-pipecat:Initializing OpenAI LLM service
+INFO:rime-pipecat:Initializing Rime TTS service
+INFO:rime-pipecat:Using Rime HTTP service
+2025-10-09 21:38:05.481 | DEBUG    | pipecat.processors.frame_processor:link:394 - Linking PipelineSource#0 -> SmallWebRTCInputTransport#0
+2025-10-09 21:38:05.481 | DEBUG    | pipecat.processors.frame_processor:link:394 - Linking SmallWebRTCInputTransport#0 -> DeepgramSTTService#0
+2025-10-09 21:38:05.481 | DEBUG    | pipecat.processors.frame_processor:link:394 - Linking DeepgramSTTService#0 -> OpenAIUserContextAggregator#0
+2025-10-09 21:38:05.481 | DEBUG    | pipecat.processors.frame_processor:link:394 - Linking OpenAIUserContextAggregator#0 -> OpenAILLMService#0
+2025-10-09 21:38:05.481 | DEBUG    | pipecat.processors.frame_processor:link:394 - Linking OpenAILLMService#0 -> RimeHttpTTSService#0
+2025-10-09 21:38:05.481 | DEBUG    | pipecat.processors.frame_processor:link:394 - Linking RimeHttpTTSService#0 -> RTVIProcessor#0
+2025-10-09 21:38:05.481 | DEBUG    | pipecat.processors.frame_processor:link:394 - Linking RTVIProcessor#0 -> SmallWebRTCOutputTransport#0
+2025-10-09 21:38:05.481 | DEBUG    | pipecat.processors.frame_processor:link:394 - Linking SmallWebRTCOutputTransport#0 -> AudioBufferProcessor#0
+2025-10-09 21:38:05.481 | DEBUG    | pipecat.processors.frame_processor:link:394 - Linking AudioBufferProcessor#0 -> OpenAIAssistantContextAggregator#0
+2025-10-09 21:38:05.481 | DEBUG    | pipecat.processors.frame_processor:link:394 - Linking OpenAIAssistantContextAggregator#0 -> PipelineSink#0
+2025-10-09 21:38:05.482 | DEBUG    | pipecat.processors.frame_processor:link:394 - Linking PipelineTaskSource#0 -> Pipeline#0
+2025-10-09 21:38:05.482 | DEBUG    | pipecat.processors.frame_processor:link:394 - Linking Pipeline#0 -> PipelineTaskSink#0
+2025-10-09 21:38:05.482 | DEBUG    | pipecat.pipeline.runner:run:66 - Runner PipelineRunner#0 started running PipelineTask#0
+2025-10-09 21:38:05.482 | DEBUG    | pipecat.services.deepgram.stt:_connect:214 - Connecting to Deepgram
+2025-10-09 21:38:05.489 | DEBUG    | pipecat.transports.network.webrtc_connection:on_iceconnectionstatechange:289 - ICE connection state is checking, connection is connecting
+2025-10-09 21:38:05.489 | DEBUG    | pipecat.transports.network.webrtc_connection:_handle_new_connection_state:454 - Connection state changed to: connecting
+2025-10-09 21:38:05.515 | DEBUG    | pipecat.transports.network.webrtc_connection:on_iceconnectionstatechange:289 - ICE connection state is completed, connection is connecting
+2025-10-09 21:38:05.520 | DEBUG    | pipecat.transports.network.webrtc_connection:_handle_signalling_message:550 - Signalling message received: {'type': 'trackStatus', 'receiver_index': 0, 'enabled': True}
+2025-10-09 21:38:05.520 | DEBUG    | pipecat.transports.network.webrtc_connection:_handle_signalling_message:550 - Signalling message received: {'type': 'trackStatus', 'receiver_index': 1, 'enabled': False}
+2025-10-09 21:38:05.521 | DEBUG    | pipecat.transports.network.webrtc_connection:on_message:274 - Client not connected. Queuing app-message.
+2025-10-09 21:38:06.373 | INFO     | pipecat.transports.network.small_webrtc:connect:405 - Connecting to Small WebRTC
+2025-10-09 21:38:06.373 | DEBUG    | pipecat.transports.network.webrtc_connection:connect:338 - Flushing pending app-messages
+2025-10-09 21:38:06.373 | DEBUG    | pipecat.transports.network.webrtc_connection:discard_old_frames:131 - Discarding old frames
+2025-10-09 21:38:06.374 | DEBUG    | pipecat.audio.vad.vad_analyzer:set_params:150 - Setting VAD params to: confidence=0.7 start_secs=0.2 stop_secs=0.8 min_volume=0.6
+2025-10-09 21:38:06.376 | DEBUG    | pipecat.transports.network.small_webrtc:on_connected:236 - Peer connection established.
+2025-10-09 21:38:06.376 | DEBUG    | pipecat.transports.network.webrtc_connection:replace_audio_track:393 - Replacing audio track audio
+2025-10-09 21:38:06.376 | DEBUG    | pipecat.transports.network.small_webrtc:push_app_message:627 - Received app message inside SmallWebRTCInputTransport  {'label': 'rtvi-ai', 'type': 'client-ready', 'data': {'version': '1.0.0', 'about': {'library': '@pipecat-ai/client-react', 'library_version': '1.0.1', 'platform_details': {'browser': 'Chrome', 'browser_version': '140.0.0.0', 'platform_type': 'desktop', 'engine': 'Blink'}, 'platform': 'macOS', 'platform_version': '10.15.7'}}, 'id': '0812e4e4'}
+2025-10-09 21:38:06.377 | DEBUG    | pipecat.processors.frameworks.rtvi:_handle_client_ready:1431 - Received client-ready: version 1.0.0
+2025-10-09 21:38:06.377 | DEBUG    | pipecat.processors.frameworks.rtvi:_handle_client_ready:1441 - Client Details: library='@pipecat-ai/client-react' library_version='1.0.1' platform='macOS' platform_version='10.15.7' platform_details={'browser': 'Chrome', 'browser_version': '140.0.0.0', 'platform_type': 'desktop', 'engine': 'Blink'}
+INFO:rime-pipecat:Client connected
+2025-10-09 21:38:06.386 | INFO     | pipecat.examples.run:offer:235 - Reusing existing connection for pc_id: SmallWebRTCConnection#0
+2025-10-09 21:38:06.386 | DEBUG    | pipecat.transports.network.webrtc_connection:renegotiate:356 - Renegotiating SmallWebRTCConnection#0
+2025-10-09 21:38:06.389 | DEBUG    | pipecat.transports.network.webrtc_connection:_create_answer:317 - Creating answer
+2025-10-09 21:38:06.390 | DEBUG    | pipecat.transports.network.webrtc_connection:_create_answer:320 - Setting the answer after the local description is created
+INFO:     ::1:63103 - "POST /api/offer HTTP/1.1" 200 OK
+2025-10-09 21:38:15.018 | DEBUG    | pipecat.transports.base_input:_handle_user_interruption:348 - User started speaking
+2025-10-09 21:38:15.020 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_ttfb_metrics:131 - DeepgramSTTService#0 TTFB: 0.0017690658569335938
+2025-10-09 21:38:15.021 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_processing_metrics:152 - DeepgramSTTService#0 processing time: 0.001962900161743164
+2025-10-09 21:38:19.076 | DEBUG    | pipecat.transports.base_input:_handle_user_interruption:372 - User stopped speaking
+2025-10-09 21:38:19.080 | DEBUG    | pipecat.services.openai.base_llm:_stream_chat_completions:211 - OpenAILLMService#0: Generating chat [[{"role": "system", "content": "\nYou are witty, friendly, but professional AI assistant powered by Rime AI, a TTS provider\nwith the most realistic voices on the market.\n\nEverything you say will be spoken by a tts model.\n\nYou are built using the Pipecat framework, which is a powerful tool for building voice agents.\n"}, {"role": "user", "content": "Can you can you help me out? Can you tell me a very big story?"}]]
+2025-10-09 21:38:19.843 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_ttfb_metrics:131 - OpenAILLMService#0 TTFB: 0.7630720138549805
+2025-10-09 21:38:20.016 | DEBUG    | pipecat.services.rime.tts:run_tts:507 - RimeHttpTTSService#0: Generating TTS [Of course, I'd be happy to tell you a big story!]
+2025-10-09 21:38:20.978 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:start_tts_usage_metrics:191 - RimeHttpTTSService#0 usage characters: 48
+2025-10-09 21:38:20.978 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_ttfb_metrics:131 - RimeHttpTTSService#0 TTFB: 0.9615280628204346
+2025-10-09 21:38:20.983 | DEBUG    | pipecat.transports.base_output:_bot_started_speaking:564 - Bot started speaking
+2025-10-09 21:38:21.214 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_processing_metrics:152 - RimeHttpTTSService#0 processing time: 1.197504997253418
+2025-10-09 21:38:21.215 | DEBUG    | pipecat.services.rime.tts:run_tts:507 - RimeHttpTTSService#0: Generating TTS [ Let's dive into a magical adventure:
+
+Once upon a time, in the mystical land of Eldoria, there existed a small village nestled between towering mountains and lush, enchanted forests.]
+2025-10-09 21:38:21.749 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:start_tts_usage_metrics:191 - RimeHttpTTSService#0 usage characters: 183
+2025-10-09 21:38:21.749 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_ttfb_metrics:131 - RimeHttpTTSService#0 TTFB: 0.5336861610412598
+2025-10-09 21:38:22.190 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_processing_metrics:152 - RimeHttpTTSService#0 processing time: 0.9746978282928467
+2025-10-09 21:38:22.190 | DEBUG    | pipecat.services.rime.tts:run_tts:507 - RimeHttpTTSService#0: Generating TTS [ This village was known for its peaceful inhabitants and their extraordinary harmony with nature.]
+2025-10-09 21:38:22.646 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:start_tts_usage_metrics:191 - RimeHttpTTSService#0 usage characters: 97
+2025-10-09 21:38:22.646 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_ttfb_metrics:131 - RimeHttpTTSService#0 TTFB: 0.4551248550415039
+2025-10-09 21:38:22.668 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_processing_metrics:152 - RimeHttpTTSService#0 processing time: 0.4778411388397217
+2025-10-09 21:38:22.670 | DEBUG    | pipecat.services.rime.tts:run_tts:507 - RimeHttpTTSService#0: Generating TTS [ However, unbeknownst to the villagers, deep within the heart of the forest lay a hidden secret—a portal to another realm.]
+2025-10-09 21:38:23.132 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:start_tts_usage_metrics:191 - RimeHttpTTSService#0 usage characters: 122
+2025-10-09 21:38:23.132 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_ttfb_metrics:131 - RimeHttpTTSService#0 TTFB: 0.462522029876709
+2025-10-09 21:38:23.155 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_processing_metrics:152 - RimeHttpTTSService#0 processing time: 0.4846930503845215
+2025-10-09 21:38:23.155 | DEBUG    | pipecat.services.rime.tts:run_tts:507 - RimeHttpTTSService#0: Generating TTS [One sunny morning, a curious young girl named Elara stumbled upon this portal while exploring the forest.]
+2025-10-09 21:38:23.607 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:start_tts_usage_metrics:191 - RimeHttpTTSService#0 usage characters: 105
+2025-10-09 21:38:23.608 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_ttfb_metrics:131 - RimeHttpTTSService#0 TTFB: 0.4521770477294922
+2025-10-09 21:38:23.627 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_processing_metrics:152 - RimeHttpTTSService#0 processing time: 0.4717140197753906
+2025-10-09 21:38:23.628 | DEBUG    | pipecat.services.rime.tts:run_tts:507 - RimeHttpTTSService#0: Generating TTS [ Intrigued by the shimmering light emanating from the portal, she hesitated for a moment but then stepped through.]
+2025-10-09 21:38:24.087 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:start_tts_usage_metrics:191 - RimeHttpTTSService#0 usage characters: 114
+2025-10-09 21:38:24.088 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_ttfb_metrics:131 - RimeHttpTTSService#0 TTFB: 0.4599418640136719
+2025-10-09 21:38:24.109 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_processing_metrics:152 - RimeHttpTTSService#0 processing time: 0.4808468818664551
+2025-10-09 21:38:24.110 | DEBUG    | pipecat.services.rime.tts:run_tts:507 - RimeHttpTTSService#0: Generating TTS [ To her amazement, she found herself in a world unlike any she had ever imagined—a realm of floating islands, mythical creatures, and endless skies.]
+2025-10-09 21:38:24.596 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:start_tts_usage_metrics:191 - RimeHttpTTSService#0 usage characters: 148
+2025-10-09 21:38:24.598 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_ttfb_metrics:131 - RimeHttpTTSService#0 TTFB: 0.48790597915649414
+2025-10-09 21:38:24.819 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_processing_metrics:152 - RimeHttpTTSService#0 processing time: 0.7098770141601562
+2025-10-09 21:38:24.820 | DEBUG    | pipecat.services.rime.tts:run_tts:507 - RimeHttpTTSService#0: Generating TTS [In this new world, Elara met a wise old owl named Orin, who spoke of an ancient prophecy.]
+2025-10-09 21:38:25.301 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:start_tts_usage_metrics:191 - RimeHttpTTSService#0 usage characters: 89
+2025-10-09 21:38:25.301 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_ttfb_metrics:131 - RimeHttpTTSService#0 TTFB: 0.4806370735168457
+2025-10-09 21:38:25.340 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_processing_metrics:152 - RimeHttpTTSService#0 processing time: 0.5192980766296387
+2025-10-09 21:38:25.341 | DEBUG    | pipecat.services.rime.tts:run_tts:507 - RimeHttpTTSService#0: Generating TTS [ The prophecy foretold that a brave soul from the human realm would come to restore balance between the two worlds, which had been disrupted by a wicked sorcerer named Malakar.]
+2025-10-09 21:38:25.865 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:start_tts_usage_metrics:191 - RimeHttpTTSService#0 usage characters: 176
+2025-10-09 21:38:25.865 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_ttfb_metrics:131 - RimeHttpTTSService#0 TTFB: 0.524165153503418
+2025-10-09 21:38:26.088 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_processing_metrics:152 - RimeHttpTTSService#0 processing time: 0.7473411560058594
+2025-10-09 21:38:26.088 | DEBUG    | pipecat.services.rime.tts:run_tts:507 - RimeHttpTTSService#0: Generating TTS [ Malakar sought to harness the power of both realms for his own dark purposes, threatening to plunge them into chaos.]
+2025-10-09 21:38:26.554 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:start_tts_usage_metrics:191 - RimeHttpTTSService#0 usage characters: 117
+2025-10-09 21:38:26.554 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_ttfb_metrics:131 - RimeHttpTTSService#0 TTFB: 0.46576404571533203
+2025-10-09 21:38:26.572 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_processing_metrics:152 - RimeHttpTTSService#0 processing time: 0.48391008377075195
+2025-10-09 21:38:26.573 | DEBUG    | pipecat.services.rime.tts:run_tts:507 - RimeHttpTTSService#0: Generating TTS [Determined to fulfill the prophecy, Elara embarked on a quest with Orin as her guide.]
+2025-10-09 21:38:27.079 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:start_tts_usage_metrics:191 - RimeHttpTTSService#0 usage characters: 85
+2025-10-09 21:38:27.079 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_ttfb_metrics:131 - RimeHttpTTSService#0 TTFB: 0.5061640739440918
+2025-10-09 21:38:27.098 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_processing_metrics:152 - RimeHttpTTSService#0 processing time: 0.5253810882568359
+2025-10-09 21:38:27.099 | DEBUG    | pipecat.services.rime.tts:run_tts:507 - RimeHttpTTSService#0: Generating TTS [ Along the way, she befriended a mischievous sprite named Lira, a noble centaur called Thalion, and a gentle giant named Bramble.]
+2025-10-09 21:38:27.596 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:start_tts_usage_metrics:191 - RimeHttpTTSService#0 usage characters: 129
+2025-10-09 21:38:27.596 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_ttfb_metrics:131 - RimeHttpTTSService#0 TTFB: 0.4971730709075928
+2025-10-09 21:38:27.819 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_processing_metrics:152 - RimeHttpTTSService#0 processing time: 0.7197921276092529
+2025-10-09 21:38:27.820 | DEBUG    | pipecat.services.rime.tts:run_tts:507 - RimeHttpTTSService#0: Generating TTS [ Together, they journeyed through enchanted forests, treacherous mountains, and vast deserts, facing challenges and overcoming fears.]
+2025-10-09 21:38:28.268 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:start_tts_usage_metrics:191 - RimeHttpTTSService#0 usage characters: 133
+2025-10-09 21:38:28.268 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_ttfb_metrics:131 - RimeHttpTTSService#0 TTFB: 0.44892096519470215
+2025-10-09 21:38:28.491 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_processing_metrics:152 - RimeHttpTTSService#0 processing time: 0.671889066696167
+2025-10-09 21:38:28.492 | DEBUG    | pipecat.services.rime.tts:run_tts:507 - RimeHttpTTSService#0: Generating TTS [In the heart of the realm, they confronted Malakar in his lair—a towering castle made of obsidian.]
+2025-10-09 21:38:28.978 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:start_tts_usage_metrics:191 - RimeHttpTTSService#0 usage characters: 98
+2025-10-09 21:38:28.978 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_ttfb_metrics:131 - RimeHttpTTSService#0 TTFB: 0.48578810691833496
+2025-10-09 21:38:29.016 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_processing_metrics:152 - RimeHttpTTSService#0 processing time: 0.5244789123535156
+2025-10-09 21:38:29.017 | DEBUG    | pipecat.services.rime.tts:run_tts:507 - RimeHttpTTSService#0: Generating TTS [ With courage and teamwork, they battled the sorcerer, using the power of friendship and light to weaken his dark magic.]
+2025-10-09 21:38:29.489 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:start_tts_usage_metrics:191 - RimeHttpTTSService#0 usage characters: 120
+2025-10-09 21:38:29.489 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_ttfb_metrics:131 - RimeHttpTTSService#0 TTFB: 0.47187113761901855
+2025-10-09 21:38:29.711 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_processing_metrics:152 - RimeHttpTTSService#0 processing time: 0.6936860084533691
+2025-10-09 21:38:29.712 | DEBUG    | pipecat.services.rime.tts:run_tts:507 - RimeHttpTTSService#0: Generating TTS [ In a final, epic showdown, Elara unleashed the true power within her, banishing Malakar and restoring harmony between the worlds.]
+2025-10-09 21:38:30.237 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:start_tts_usage_metrics:191 - RimeHttpTTSService#0 usage characters: 130
+2025-10-09 21:38:30.238 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_ttfb_metrics:131 - RimeHttpTTSService#0 TTFB: 0.5255541801452637
+2025-10-09 21:38:30.257 | ERROR    | pipecat.processors.frame_processor:__input_frame_task_handler:659 - SmallWebRTCOutputTransport#0: error processing frame: buffer size must be a multiple of element size
+Traceback (most recent call last):
+
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/rime_agent.py", line 428, in <module>
+    main(run_example, transport_params=transport_params, parser=parser)
+    │    │                             │                        └ ArgumentParser(prog='rime_agent.py', usage=None, description=None, formatter_class=<class 'argparse.HelpFormatter'>, conflict...
+    │    │                             └ {'webrtc': <function <lambda> at 0x1027ad580>}
+    │    └ <function run_example at 0x1528491c0>
+    └ <function main at 0x152848fe0>
+
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/examples/run.py", line 437, in main
+    run_main(run_example, args, transport_params)
+    │        │            │     └ {'webrtc': <function <lambda> at 0x1027ad580>}
+    │        │            └ Namespace(record=False, console=False, text=None, text_file=None, http=True, host='localhost', port=7860, transport='webrtc',...
+    │        └ <function run_example at 0x1528491c0>
+    └ <function run_main at 0x152848f40>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/examples/run.py", line 385, in run_main
+    run_example_webrtc(run_example, args, transport_params)
+    │                  │            │     └ {'webrtc': <function <lambda> at 0x1027ad580>}
+    │                  │            └ Namespace(record=False, console=False, text=None, text_file=None, http=True, host='localhost', port=7860, transport='webrtc',...
+    │                  └ <function run_example at 0x1528491c0>
+    └ <function run_example_webrtc at 0x152848e00>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/examples/run.py", line 285, in run_example_webrtc
+    uvicorn.run(app, host=args.host, port=args.port)
+    │       │   │         │    │          │    └ 7860
+    │       │   │         │    │          └ Namespace(record=False, console=False, text=None, text_file=None, http=True, host='localhost', port=7860, transport='webrtc',...
+    │       │   │         │    └ 'localhost'
+    │       │   │         └ Namespace(record=False, console=False, text=None, text_file=None, http=True, host='localhost', port=7860, transport='webrtc',...
+    │       │   └ <fastapi.applications.FastAPI object at 0x144c4df50>
+    │       └ <function run at 0x133a163e0>
+    └ <module 'uvicorn' from '/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/uvicorn/__init__...
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/uvicorn/main.py", line 580, in run
+    server.run()
+    │      └ <function Server.run at 0x133a165c0>
+    └ <uvicorn.server.Server object at 0x1527cde90>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/uvicorn/server.py", line 67, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           │       │   │    │             └ None
+           │       │   │    └ <function Server.serve at 0x133a16660>
+           │       │   └ <uvicorn.server.Server object at 0x1527cde90>
+           │       └ <function run at 0x1033a93a0>
+           └ <module 'asyncio' from '/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/asyncio/__init__.py'>
+  File "/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/asyncio/runners.py", line 190, in run
+    return runner.run(main)
+           │      │   └ <coroutine object Server.serve at 0x1344c8040>
+           │      └ <function Runner.run at 0x1033a9760>
+           └ <asyncio.runners.Runner object at 0x133fab6d0>
+  File "/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           │    │     │                  └ <Task pending name='Task-1' coro=<Server.serve() running at /Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/pytho...
+           │    │     └ <cyfunction Loop.run_until_complete at 0x133ae6a80>
+           │    └ <uvloop.Loop running=True closed=False debug=False>
+           └ <asyncio.runners.Runner object at 0x133fab6d0>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/utils/asyncio/task_manager.py", line 236, in run_coroutine
+    await coroutine
+          └ <coroutine object FrameProcessor.__input_frame_task_handler at 0x15749ef00>
+> File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/processors/frame_processor.py", line 654, in __input_frame_task_handler
+    await self.process_frame(frame, direction)
+          │    │             │      └ <FrameDirection.DOWNSTREAM: 1>
+          │    │             └ TTSAudioRawFrame(audio=b"$\xdd{\xdb\x1f\xd9\xa0\xde\x8b\xf3\xf0\x01K\xff\x8b\xf7\xaa\xf8\x0e\x05\xb5\x07D\xfd\xff\xf7\x16\xfc...
+          │    └ <function BaseOutputTransport.process_frame at 0x13325dbc0>
+          └ <pipecat.transports.network.small_webrtc.SmallWebRTCOutputTransport object at 0x144c4ffd0>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/transports/base_output.py", line 285, in process_frame
+    await self._handle_frame(frame)
+          │    │             └ TTSAudioRawFrame(audio=b"$\xdd{\xdb\x1f\xd9\xa0\xde\x8b\xf3\xf0\x01K\xff\x8b\xf7\xaa\xf8\x0e\x05\xb5\x07D\xfd\xff\xf7\x16\xfc...
+          │    └ <function BaseOutputTransport._handle_frame at 0x13325dc60>
+          └ <pipecat.transports.network.small_webrtc.SmallWebRTCOutputTransport object at 0x144c4ffd0>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/transports/base_output.py", line 309, in _handle_frame
+    await sender.handle_audio_frame(frame)
+          │      │                  └ TTSAudioRawFrame(audio=b"$\xdd{\xdb\x1f\xd9\xa0\xde\x8b\xf3\xf0\x01K\xff\x8b\xf7\xaa\xf8\x0e\x05\xb5\x07D\xfd\xff\xf7\x16\xfc...
+          │      └ <function BaseOutputTransport.MediaSender.handle_audio_frame at 0x13325e200>
+          └ <pipecat.transports.base_output.BaseOutputTransport.MediaSender object at 0x1574be650>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/transports/base_output.py", line 488, in handle_audio_frame
+    resampled = await self._resampler.resample(
+                      │    │          └ <function SOXRStreamAudioResampler.resample at 0x130ee11c0>
+                      │    └ <pipecat.audio.resamplers.soxr_stream_resampler.SOXRStreamAudioResampler object at 0x1574be8d0>
+                      └ <pipecat.transports.base_output.BaseOutputTransport.MediaSender object at 0x1574be650>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/audio/resamplers/soxr_stream_resampler.py", line 98, in resample
+    audio_data = np.frombuffer(audio, dtype=np.int16)
+                 │  │          │            │  └ <class 'numpy.int16'>
+                 │  │          │            └ <module 'numpy' from '/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/numpy/__init__.py'>
+                 │  │          └ b"$\xdd{\xdb\x1f\xd9\xa0\xde\x8b\xf3\xf0\x01K\xff\x8b\xf7\xaa\xf8\x0e\x05\xb5\x07D\xfd\xff\xf7\x16\xfc\x7f\x04\x7f\t\x87\t\xf...
+                 │  └ <built-in function frombuffer>
+                 └ <module 'numpy' from '/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/numpy/__init__.py'>
+
+ValueError: buffer size must be a multiple of element size
+2025-10-09 21:38:30.264 | WARNING  | pipecat.pipeline.task:_process_up_queue:694 - Something went wrong: ErrorFrame#0(error: buffer size must be a multiple of element size, fatal: False)
+2025-10-09 21:38:30.266 | ERROR    | pipecat.processors.frame_processor:__input_frame_task_handler:659 - SmallWebRTCOutputTransport#0: error processing frame: buffer size must be a multiple of element size
+Traceback (most recent call last):
+
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/rime_agent.py", line 428, in <module>
+    main(run_example, transport_params=transport_params, parser=parser)
+    │    │                             │                        └ ArgumentParser(prog='rime_agent.py', usage=None, description=None, formatter_class=<class 'argparse.HelpFormatter'>, conflict...
+    │    │                             └ {'webrtc': <function <lambda> at 0x1027ad580>}
+    │    └ <function run_example at 0x1528491c0>
+    └ <function main at 0x152848fe0>
+
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/examples/run.py", line 437, in main
+    run_main(run_example, args, transport_params)
+    │        │            │     └ {'webrtc': <function <lambda> at 0x1027ad580>}
+    │        │            └ Namespace(record=False, console=False, text=None, text_file=None, http=True, host='localhost', port=7860, transport='webrtc',...
+    │        └ <function run_example at 0x1528491c0>
+    └ <function run_main at 0x152848f40>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/examples/run.py", line 385, in run_main
+    run_example_webrtc(run_example, args, transport_params)
+    │                  │            │     └ {'webrtc': <function <lambda> at 0x1027ad580>}
+    │                  │            └ Namespace(record=False, console=False, text=None, text_file=None, http=True, host='localhost', port=7860, transport='webrtc',...
+    │                  └ <function run_example at 0x1528491c0>
+    └ <function run_example_webrtc at 0x152848e00>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/examples/run.py", line 285, in run_example_webrtc
+    uvicorn.run(app, host=args.host, port=args.port)
+    │       │   │         │    │          │    └ 7860
+    │       │   │         │    │          └ Namespace(record=False, console=False, text=None, text_file=None, http=True, host='localhost', port=7860, transport='webrtc',...
+    │       │   │         │    └ 'localhost'
+    │       │   │         └ Namespace(record=False, console=False, text=None, text_file=None, http=True, host='localhost', port=7860, transport='webrtc',...
+    │       │   └ <fastapi.applications.FastAPI object at 0x144c4df50>
+    │       └ <function run at 0x133a163e0>
+    └ <module 'uvicorn' from '/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/uvicorn/__init__...
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/uvicorn/main.py", line 580, in run
+    server.run()
+    │      └ <function Server.run at 0x133a165c0>
+    └ <uvicorn.server.Server object at 0x1527cde90>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/uvicorn/server.py", line 67, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           │       │   │    │             └ None
+           │       │   │    └ <function Server.serve at 0x133a16660>
+           │       │   └ <uvicorn.server.Server object at 0x1527cde90>
+           │       └ <function run at 0x1033a93a0>
+           └ <module 'asyncio' from '/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/asyncio/__init__.py'>
+  File "/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/asyncio/runners.py", line 190, in run
+    return runner.run(main)
+           │      │   └ <coroutine object Server.serve at 0x1344c8040>
+           │      └ <function Runner.run at 0x1033a9760>
+           └ <asyncio.runners.Runner object at 0x133fab6d0>
+  File "/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           │    │     │                  └ <Task pending name='Task-1' coro=<Server.serve() running at /Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/pytho...
+           │    │     └ <cyfunction Loop.run_until_complete at 0x133ae6a80>
+           │    └ <uvloop.Loop running=True closed=False debug=False>
+           └ <asyncio.runners.Runner object at 0x133fab6d0>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/utils/asyncio/task_manager.py", line 236, in run_coroutine
+    await coroutine
+          └ <coroutine object FrameProcessor.__input_frame_task_handler at 0x15749ef00>
+> File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/processors/frame_processor.py", line 654, in __input_frame_task_handler
+    await self.process_frame(frame, direction)
+          │    │             │      └ <FrameDirection.DOWNSTREAM: 1>
+          │    │             └ TTSAudioRawFrame(audio=b'\x04G\xfd\xc4\x01O\x08\xc9\x06`\xffw\xfd\xfa\x05\x8c\x10u\x13\x86\r<\x05\x7f\x00B\xff\xba\xfe{\xfcK\...
+          │    └ <function BaseOutputTransport.process_frame at 0x13325dbc0>
+          └ <pipecat.transports.network.small_webrtc.SmallWebRTCOutputTransport object at 0x144c4ffd0>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/transports/base_output.py", line 285, in process_frame
+    await self._handle_frame(frame)
+          │    │             └ TTSAudioRawFrame(audio=b'\x04G\xfd\xc4\x01O\x08\xc9\x06`\xffw\xfd\xfa\x05\x8c\x10u\x13\x86\r<\x05\x7f\x00B\xff\xba\xfe{\xfcK\...
+          │    └ <function BaseOutputTransport._handle_frame at 0x13325dc60>
+          └ <pipecat.transports.network.small_webrtc.SmallWebRTCOutputTransport object at 0x144c4ffd0>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/transports/base_output.py", line 309, in _handle_frame
+    await sender.handle_audio_frame(frame)
+          │      │                  └ TTSAudioRawFrame(audio=b'\x04G\xfd\xc4\x01O\x08\xc9\x06`\xffw\xfd\xfa\x05\x8c\x10u\x13\x86\r<\x05\x7f\x00B\xff\xba\xfe{\xfcK\...
+          │      └ <function BaseOutputTransport.MediaSender.handle_audio_frame at 0x13325e200>
+          └ <pipecat.transports.base_output.BaseOutputTransport.MediaSender object at 0x1574be650>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/transports/base_output.py", line 488, in handle_audio_frame
+    resampled = await self._resampler.resample(
+                      │    │          └ <function SOXRStreamAudioResampler.resample at 0x130ee11c0>
+                      │    └ <pipecat.audio.resamplers.soxr_stream_resampler.SOXRStreamAudioResampler object at 0x1574be8d0>
+                      └ <pipecat.transports.base_output.BaseOutputTransport.MediaSender object at 0x1574be650>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/audio/resamplers/soxr_stream_resampler.py", line 98, in resample
+    audio_data = np.frombuffer(audio, dtype=np.int16)
+                 │  │          │            │  └ <class 'numpy.int16'>
+                 │  │          │            └ <module 'numpy' from '/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/numpy/__init__.py'>
+                 │  │          └ b'\x04G\xfd\xc4\x01O\x08\xc9\x06`\xffw\xfd\xfa\x05\x8c\x10u\x13\x86\r<\x05\x7f\x00B\xff\xba\xfe{\xfcK\xf8V\xf4\x0b\xf3\xf3\xf...
+                 │  └ <built-in function frombuffer>
+                 └ <module 'numpy' from '/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/numpy/__init__.py'>
+
+ValueError: buffer size must be a multiple of element size
+2025-10-09 21:38:30.268 | WARNING  | pipecat.pipeline.task:_process_up_queue:694 - Something went wrong: ErrorFrame#1(error: buffer size must be a multiple of element size, fatal: False)
+2025-10-09 21:38:30.458 | ERROR    | pipecat.processors.frame_processor:__input_frame_task_handler:659 - SmallWebRTCOutputTransport#0: error processing frame: buffer size must be a multiple of element size
+Traceback (most recent call last):
+
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/rime_agent.py", line 428, in <module>
+    main(run_example, transport_params=transport_params, parser=parser)
+    │    │                             │                        └ ArgumentParser(prog='rime_agent.py', usage=None, description=None, formatter_class=<class 'argparse.HelpFormatter'>, conflict...
+    │    │                             └ {'webrtc': <function <lambda> at 0x1027ad580>}
+    │    └ <function run_example at 0x1528491c0>
+    └ <function main at 0x152848fe0>
+
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/examples/run.py", line 437, in main
+    run_main(run_example, args, transport_params)
+    │        │            │     └ {'webrtc': <function <lambda> at 0x1027ad580>}
+    │        │            └ Namespace(record=False, console=False, text=None, text_file=None, http=True, host='localhost', port=7860, transport='webrtc',...
+    │        └ <function run_example at 0x1528491c0>
+    └ <function run_main at 0x152848f40>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/examples/run.py", line 385, in run_main
+    run_example_webrtc(run_example, args, transport_params)
+    │                  │            │     └ {'webrtc': <function <lambda> at 0x1027ad580>}
+    │                  │            └ Namespace(record=False, console=False, text=None, text_file=None, http=True, host='localhost', port=7860, transport='webrtc',...
+    │                  └ <function run_example at 0x1528491c0>
+    └ <function run_example_webrtc at 0x152848e00>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/examples/run.py", line 285, in run_example_webrtc
+    uvicorn.run(app, host=args.host, port=args.port)
+    │       │   │         │    │          │    └ 7860
+    │       │   │         │    │          └ Namespace(record=False, console=False, text=None, text_file=None, http=True, host='localhost', port=7860, transport='webrtc',...
+    │       │   │         │    └ 'localhost'
+    │       │   │         └ Namespace(record=False, console=False, text=None, text_file=None, http=True, host='localhost', port=7860, transport='webrtc',...
+    │       │   └ <fastapi.applications.FastAPI object at 0x144c4df50>
+    │       └ <function run at 0x133a163e0>
+    └ <module 'uvicorn' from '/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/uvicorn/__init__...
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/uvicorn/main.py", line 580, in run
+    server.run()
+    │      └ <function Server.run at 0x133a165c0>
+    └ <uvicorn.server.Server object at 0x1527cde90>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/uvicorn/server.py", line 67, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           │       │   │    │             └ None
+           │       │   │    └ <function Server.serve at 0x133a16660>
+           │       │   └ <uvicorn.server.Server object at 0x1527cde90>
+           │       └ <function run at 0x1033a93a0>
+           └ <module 'asyncio' from '/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/asyncio/__init__.py'>
+  File "/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/asyncio/runners.py", line 190, in run
+    return runner.run(main)
+           │      │   └ <coroutine object Server.serve at 0x1344c8040>
+           │      └ <function Runner.run at 0x1033a9760>
+           └ <asyncio.runners.Runner object at 0x133fab6d0>
+  File "/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           │    │     │                  └ <Task pending name='Task-1' coro=<Server.serve() running at /Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/pytho...
+           │    │     └ <cyfunction Loop.run_until_complete at 0x133ae6a80>
+           │    └ <uvloop.Loop running=True closed=False debug=False>
+           └ <asyncio.runners.Runner object at 0x133fab6d0>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/utils/asyncio/task_manager.py", line 236, in run_coroutine
+    await coroutine
+          └ <coroutine object FrameProcessor.__input_frame_task_handler at 0x15749ef00>
+> File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/processors/frame_processor.py", line 654, in __input_frame_task_handler
+    await self.process_frame(frame, direction)
+          │    │             │      └ <FrameDirection.DOWNSTREAM: 1>
+          │    │             └ TTSAudioRawFrame(audio=b'\x9a\xfd<\xff\x01\xffN\xfd\xcd\xfb\xab\xfd\x8c\x02^\x03\xf1\x01\x80\x04\t\tB\x0c\xa4\r0\rH\x0ch\x0bA...
+          │    └ <function BaseOutputTransport.process_frame at 0x13325dbc0>
+          └ <pipecat.transports.network.small_webrtc.SmallWebRTCOutputTransport object at 0x144c4ffd0>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/transports/base_output.py", line 285, in process_frame
+    await self._handle_frame(frame)
+          │    │             └ TTSAudioRawFrame(audio=b'\x9a\xfd<\xff\x01\xffN\xfd\xcd\xfb\xab\xfd\x8c\x02^\x03\xf1\x01\x80\x04\t\tB\x0c\xa4\r0\rH\x0ch\x0bA...
+          │    └ <function BaseOutputTransport._handle_frame at 0x13325dc60>
+          └ <pipecat.transports.network.small_webrtc.SmallWebRTCOutputTransport object at 0x144c4ffd0>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/transports/base_output.py", line 309, in _handle_frame
+    await sender.handle_audio_frame(frame)
+          │      │                  └ TTSAudioRawFrame(audio=b'\x9a\xfd<\xff\x01\xffN\xfd\xcd\xfb\xab\xfd\x8c\x02^\x03\xf1\x01\x80\x04\t\tB\x0c\xa4\r0\rH\x0ch\x0bA...
+          │      └ <function BaseOutputTransport.MediaSender.handle_audio_frame at 0x13325e200>
+          └ <pipecat.transports.base_output.BaseOutputTransport.MediaSender object at 0x1574be650>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/transports/base_output.py", line 488, in handle_audio_frame
+    resampled = await self._resampler.resample(
+                      │    │          └ <function SOXRStreamAudioResampler.resample at 0x130ee11c0>
+                      │    └ <pipecat.audio.resamplers.soxr_stream_resampler.SOXRStreamAudioResampler object at 0x1574be8d0>
+                      └ <pipecat.transports.base_output.BaseOutputTransport.MediaSender object at 0x1574be650>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/audio/resamplers/soxr_stream_resampler.py", line 98, in resample
+    audio_data = np.frombuffer(audio, dtype=np.int16)
+                 │  │          │            │  └ <class 'numpy.int16'>
+                 │  │          │            └ <module 'numpy' from '/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/numpy/__init__.py'>
+                 │  │          └ b'\x9a\xfd<\xff\x01\xffN\xfd\xcd\xfb\xab\xfd\x8c\x02^\x03\xf1\x01\x80\x04\t\tB\x0c\xa4\r0\rH\x0ch\x0bA\x0b\x9d\x0eY\x12\xba\x...
+                 │  └ <built-in function frombuffer>
+                 └ <module 'numpy' from '/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/numpy/__init__.py'>
+
+ValueError: buffer size must be a multiple of element size
+2025-10-09 21:38:30.462 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_processing_metrics:152 - RimeHttpTTSService#0 processing time: 0.7499728202819824
+2025-10-09 21:38:30.463 | DEBUG    | pipecat.services.rime.tts:run_tts:507 - RimeHttpTTSService#0: Generating TTS [As a token of gratitude, the inhabitants of the mystical realm gifted Elara a pendant, allowing her to visit whenever she wished.]
+2025-10-09 21:38:30.464 | WARNING  | pipecat.pipeline.task:_process_up_queue:694 - Something went wrong: ErrorFrame#2(error: buffer size must be a multiple of element size, fatal: False)
+2025-10-09 21:38:30.465 | ERROR    | pipecat.processors.frame_processor:__input_frame_task_handler:659 - SmallWebRTCOutputTransport#0: error processing frame: buffer size must be a multiple of element size
+Traceback (most recent call last):
+
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/rime_agent.py", line 428, in <module>
+    main(run_example, transport_params=transport_params, parser=parser)
+    │    │                             │                        └ ArgumentParser(prog='rime_agent.py', usage=None, description=None, formatter_class=<class 'argparse.HelpFormatter'>, conflict...
+    │    │                             └ {'webrtc': <function <lambda> at 0x1027ad580>}
+    │    └ <function run_example at 0x1528491c0>
+    └ <function main at 0x152848fe0>
+
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/examples/run.py", line 437, in main
+    run_main(run_example, args, transport_params)
+    │        │            │     └ {'webrtc': <function <lambda> at 0x1027ad580>}
+    │        │            └ Namespace(record=False, console=False, text=None, text_file=None, http=True, host='localhost', port=7860, transport='webrtc',...
+    │        └ <function run_example at 0x1528491c0>
+    └ <function run_main at 0x152848f40>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/examples/run.py", line 385, in run_main
+    run_example_webrtc(run_example, args, transport_params)
+    │                  │            │     └ {'webrtc': <function <lambda> at 0x1027ad580>}
+    │                  │            └ Namespace(record=False, console=False, text=None, text_file=None, http=True, host='localhost', port=7860, transport='webrtc',...
+    │                  └ <function run_example at 0x1528491c0>
+    └ <function run_example_webrtc at 0x152848e00>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/examples/run.py", line 285, in run_example_webrtc
+    uvicorn.run(app, host=args.host, port=args.port)
+    │       │   │         │    │          │    └ 7860
+    │       │   │         │    │          └ Namespace(record=False, console=False, text=None, text_file=None, http=True, host='localhost', port=7860, transport='webrtc',...
+    │       │   │         │    └ 'localhost'
+    │       │   │         └ Namespace(record=False, console=False, text=None, text_file=None, http=True, host='localhost', port=7860, transport='webrtc',...
+    │       │   └ <fastapi.applications.FastAPI object at 0x144c4df50>
+    │       └ <function run at 0x133a163e0>
+    └ <module 'uvicorn' from '/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/uvicorn/__init__...
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/uvicorn/main.py", line 580, in run
+    server.run()
+    │      └ <function Server.run at 0x133a165c0>
+    └ <uvicorn.server.Server object at 0x1527cde90>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/uvicorn/server.py", line 67, in run
+    return asyncio.run(self.serve(sockets=sockets))
+           │       │   │    │             └ None
+           │       │   │    └ <function Server.serve at 0x133a16660>
+           │       │   └ <uvicorn.server.Server object at 0x1527cde90>
+           │       └ <function run at 0x1033a93a0>
+           └ <module 'asyncio' from '/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/asyncio/__init__.py'>
+  File "/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/asyncio/runners.py", line 190, in run
+    return runner.run(main)
+           │      │   └ <coroutine object Server.serve at 0x1344c8040>
+           │      └ <function Runner.run at 0x1033a9760>
+           └ <asyncio.runners.Runner object at 0x133fab6d0>
+  File "/Users/gokuljs/.pyenv/versions/3.11.1/lib/python3.11/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           │    │     │                  └ <Task pending name='Task-1' coro=<Server.serve() running at /Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/pytho...
+           │    │     └ <cyfunction Loop.run_until_complete at 0x133ae6a80>
+           │    └ <uvloop.Loop running=True closed=False debug=False>
+           └ <asyncio.runners.Runner object at 0x133fab6d0>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/utils/asyncio/task_manager.py", line 236, in run_coroutine
+    await coroutine
+          └ <coroutine object FrameProcessor.__input_frame_task_handler at 0x15749ef00>
+> File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/processors/frame_processor.py", line 654, in __input_frame_task_handler
+    await self.process_frame(frame, direction)
+          │    │             │      └ <FrameDirection.DOWNSTREAM: 1>
+          │    │             └ TTSAudioRawFrame(audio=b'\x00O\x01g\x00N\x00\'\x01\xa4\x01\x1e\x01n\xff\xc1\x00)\x015\x01)\x01\xb5\xff\x7f\x00c\x00\x9b\x002\...
+          │    └ <function BaseOutputTransport.process_frame at 0x13325dbc0>
+          └ <pipecat.transports.network.small_webrtc.SmallWebRTCOutputTransport object at 0x144c4ffd0>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/transports/base_output.py", line 285, in process_frame
+    await self._handle_frame(frame)
+          │    │             └ TTSAudioRawFrame(audio=b'\x00O\x01g\x00N\x00\'\x01\xa4\x01\x1e\x01n\xff\xc1\x00)\x015\x01)\x01\xb5\xff\x7f\x00c\x00\x9b\x002\...
+          │    └ <function BaseOutputTransport._handle_frame at 0x13325dc60>
+          └ <pipecat.transports.network.small_webrtc.SmallWebRTCOutputTransport object at 0x144c4ffd0>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/transports/base_output.py", line 309, in _handle_frame
+    await sender.handle_audio_frame(frame)
+          │      │                  └ TTSAudioRawFrame(audio=b'\x00O\x01g\x00N\x00\'\x01\xa4\x01\x1e\x01n\xff\xc1\x00)\x015\x01)\x01\xb5\xff\x7f\x00c\x00\x9b\x002\...
+          │      └ <function BaseOutputTransport.MediaSender.handle_audio_frame at 0x13325e200>
+          └ <pipecat.transports.base_output.BaseOutputTransport.MediaSender object at 0x1574be650>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/transports/base_output.py", line 488, in handle_audio_frame
+    resampled = await self._resampler.resample(
+                      │    │          └ <function SOXRStreamAudioResampler.resample at 0x130ee11c0>
+                      │    └ <pipecat.audio.resamplers.soxr_stream_resampler.SOXRStreamAudioResampler object at 0x1574be8d0>
+                      └ <pipecat.transports.base_output.BaseOutputTransport.MediaSender object at 0x1574be650>
+  File "/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/pipecat/audio/resamplers/soxr_stream_resampler.py", line 98, in resample
+    audio_data = np.frombuffer(audio, dtype=np.int16)
+                 │  │          │            │  └ <class 'numpy.int16'>
+                 │  │          │            └ <module 'numpy' from '/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/numpy/__init__.py'>
+                 │  │          └ b'\x00O\x01g\x00N\x00\'\x01\xa4\x01\x1e\x01n\xff\xc1\x00)\x015\x01)\x01\xb5\xff\x7f\x00c\x00\x9b\x002\x01\xcd\x00\x00\x01\xbb...
+                 │  └ <built-in function frombuffer>
+                 └ <module 'numpy' from '/Users/gokuljs/work-docs/rime/rime-pipecat-agents/.venv/lib/python3.11/site-packages/numpy/__init__.py'>
+
+ValueError: buffer size must be a multiple of element size
+2025-10-09 21:38:30.467 | WARNING  | pipecat.pipeline.task:_process_up_queue:694 - Something went wrong: ErrorFrame#3(error: buffer size must be a multiple of element size, fatal: False)
+2025-10-09 21:38:30.967 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:start_tts_usage_metrics:191 - RimeHttpTTSService#0 usage characters: 129
+2025-10-09 21:38:30.967 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_ttfb_metrics:131 - RimeHttpTTSService#0 TTFB: 0.5041170120239258
+2025-10-09 21:38:31.193 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_processing_metrics:152 - RimeHttpTTSService#0 processing time: 0.7300400733947754
+2025-10-09 21:38:31.193 | DEBUG    | pipecat.services.rime.tts:run_tts:507 - RimeHttpTTSService#0: Generating TTS [ With a heavy heart but a fulfilled spirit, Elara returned to her village, forever changed by her incredible journey.]
+2025-10-09 21:38:31.492 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:start_llm_usage_metrics:173 - OpenAILLMService#0 prompt tokens: 91, completion tokens: 515
+2025-10-09 21:38:31.506 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_processing_metrics:152 - OpenAILLMService#0 processing time: 12.426676988601685
+2025-10-09 21:38:31.648 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:start_tts_usage_metrics:191 - RimeHttpTTSService#0 usage characters: 117
+2025-10-09 21:38:31.649 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_ttfb_metrics:131 - RimeHttpTTSService#0 TTFB: 0.4552450180053711
+2025-10-09 21:38:31.670 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_processing_metrics:152 - RimeHttpTTSService#0 processing time: 0.47706103324890137
+2025-10-09 21:38:31.671 | DEBUG    | pipecat.services.rime.tts:run_tts:507 - RimeHttpTTSService#0: Generating TTS [ She knew that although the portal remained hidden, the bond between the two worlds would remain strong, thanks to her bravery.]
+2025-10-09 21:38:32.116 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:start_tts_usage_metrics:191 - RimeHttpTTSService#0 usage characters: 127
+2025-10-09 21:38:32.116 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_ttfb_metrics:131 - RimeHttpTTSService#0 TTFB: 0.44464588165283203
+2025-10-09 21:38:32.137 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_processing_metrics:152 - RimeHttpTTSService#0 processing time: 0.46572399139404297
+2025-10-09 21:38:32.138 | DEBUG    | pipecat.services.rime.tts:run_tts:507 - RimeHttpTTSService#0: Generating TTS [And so, Elara's tale became a legend, inspiring generations to come, reminding them of the power of courage, friendship, and the magic that lies within us all.]
+2025-10-09 21:38:32.654 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:start_tts_usage_metrics:191 - RimeHttpTTSService#0 usage characters: 159
+2025-10-09 21:38:32.654 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_ttfb_metrics:131 - RimeHttpTTSService#0 TTFB: 0.516211986541748
+2025-10-09 21:38:32.876 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_processing_metrics:152 - RimeHttpTTSService#0 processing time: 0.7382261753082275
+2025-10-09 21:38:32.876 | DEBUG    | pipecat.services.rime.tts:run_tts:507 - RimeHttpTTSService#0: Generating TTS [The end.]
+2025-10-09 21:38:33.308 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:start_tts_usage_metrics:191 - RimeHttpTTSService#0 usage characters: 8
+2025-10-09 21:38:33.308 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_ttfb_metrics:131 - RimeHttpTTSService#0 TTFB: 0.43193888664245605
+2025-10-09 21:38:33.310 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_processing_metrics:152 - RimeHttpTTSService#0 processing time: 0.43427371978759766
+2025-10-09 21:38:33.311 | DEBUG    | pipecat.services.rime.tts:run_tts:507 - RimeHttpTTSService#0: Generating TTS [I hope you enjoyed the story!]
+2025-10-09 21:38:33.750 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:start_tts_usage_metrics:191 - RimeHttpTTSService#0 usage characters: 29
+2025-10-09 21:38:33.750 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_ttfb_metrics:131 - RimeHttpTTSService#0 TTFB: 0.4391968250274658
+2025-10-09 21:38:33.754 | DEBUG    | pipecat.processors.metrics.frame_processor_metrics:stop_processing_metrics:152 - RimeHttpTTSService#0 processing time: 0.4437251091003418
+2025-10-09 21:38:56.181 | DEBUG    | pipecat.transports.network.webrtc_connection:on_ended:304 - Track audio ended
+2025-10-09 21:38:56.181 | WARNING  | pipecat.transports.network.small_webrtc:read_audio_frame:340 - Received an unexpected media stream error while reading the audio.
+2025-10-09 21:38:56.182 | DEBUG    | pipecat.transports.network.webrtc_connection:on_iceconnectionstatechange:289 - ICE connection state is closed, connection is closed
+2025-10-09 21:38:56.182 | DEBUG    | pipecat.transports.network.webrtc_connection:_handle_new_connection_state:454 - Connection state changed to: closed
+2025-10-09 21:38:56.182 | INFO     | pipecat.examples.run:handle_disconnected:252 - Discarding peer connection for pc_id: SmallWebRTCConnection#0
+2025-10-09 21:38:56.183 | DEBUG    | pipecat.transports.network.small_webrtc:on_closed:246 - Client connection closed.
+INFO:rime-pipecat:Client disconnected
+2025-10-09 21:38:56.183 | DEBUG    | pipecat.pipeline.task:_cancel:497 - Canceling pipeline task PipelineTask#0
+2025-10-09 21:38:56.184 | INFO     | pipecat.transports.network.small_webrtc:disconnect:411 - Disconnecting to Small WebRTC
+2025-10-09 21:38:56.184 | DEBUG    | pipecat.transports.network.webrtc_connection:send_app_message:535 - Data channel not ready, queuing message
+2025-10-09 21:38:56.184 | DEBUG    | pipecat.services.deepgram.stt:_disconnect:238 - Disconnecting from Deepgram
+tasks cancelled error: 
+ERROR:deepgram.clients.common.v1.abstract_async_websocket:tasks cancelled error: 
+tasks cancelled error: 
+ERROR:deepgram.clients.common.v1.abstract_async_websocket:tasks cancelled error: 
+2025-10-09 21:38:56.695 | DEBUG    | pipecat.utils.asyncio.watchdog_queue:get:65 - Received WatchdogQueueCancelFrame, throwing CancelledError to force cancelling
+2025-10-09 21:38:56.695 | DEBUG    | pipecat.pipeline.runner:run:83 - Runner PipelineRunner#0 finished running PipelineTask#0
