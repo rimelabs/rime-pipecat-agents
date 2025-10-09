@@ -1,0 +1,11 @@
+2025-10-09 20:34:47.295 | INFO     | logging_config:setup_logging:62 - ================================================================================
+2025-10-09 20:34:47.295 | INFO     | logging_config:setup_logging:63 - Rime Pipecat Agent Starting - Session 2
+2025-10-09 20:34:47.295 | INFO     | logging_config:setup_logging:64 - Log file: logs/rime_agent_log_002_20251009_203447.txt
+2025-10-09 20:34:47.295 | INFO     | logging_config:setup_logging:65 - Timestamp: 2025-10-09T20:34:47.295330
+2025-10-09 20:34:47.295 | INFO     | logging_config:setup_logging:66 - ================================================================================
+2025-10-09 20:34:47.295 | INFO     | __main__:<module>:10 - This is the second test session
+2025-10-09 20:34:47.295 | DEBUG    | __main__:<module>:11 - Testing incremental log file numbering
+2025-10-09 20:34:47.295 | INFO     | logging_config:log_session_end:96 - ================================================================================
+2025-10-09 20:34:47.295 | INFO     | logging_config:log_session_end:97 - Rime Pipecat Agent Session Ended
+2025-10-09 20:34:47.295 | INFO     | logging_config:log_session_end:98 - End timestamp: 2025-10-09T20:34:47.295511
+2025-10-09 20:34:47.295 | INFO     | logging_config:log_session_end:99 - ================================================================================

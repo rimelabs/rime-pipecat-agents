@@ -1,0 +1,13 @@
+2025-10-09 20:34:35.934 | INFO     | logging_config:setup_logging:62 - ================================================================================
+2025-10-09 20:34:35.934 | INFO     | logging_config:setup_logging:63 - Rime Pipecat Agent Starting - Session 1
+2025-10-09 20:34:35.934 | INFO     | logging_config:setup_logging:64 - Log file: logs/rime_agent_log_001_20251009_203435.txt
+2025-10-09 20:34:35.934 | INFO     | logging_config:setup_logging:65 - Timestamp: 2025-10-09T20:34:35.934655
+2025-10-09 20:34:35.934 | INFO     | logging_config:setup_logging:66 - ================================================================================
+2025-10-09 20:34:35.934 | INFO     | __main__:<module>:10 - This is a test info message
+2025-10-09 20:34:35.934 | DEBUG    | __main__:<module>:11 - This is a test debug message
+2025-10-09 20:34:35.934 | WARNING  | __main__:<module>:12 - This is a test warning message
+2025-10-09 20:34:35.934 | ERROR    | __main__:<module>:13 - This is a test error message
+2025-10-09 20:34:35.934 | INFO     | logging_config:log_session_end:96 - ================================================================================
+2025-10-09 20:34:35.934 | INFO     | logging_config:log_session_end:97 - Rime Pipecat Agent Session Ended
+2025-10-09 20:34:35.934 | INFO     | logging_config:log_session_end:98 - End timestamp: 2025-10-09T20:34:35.934867
+2025-10-09 20:34:35.934 | INFO     | logging_config:log_session_end:99 - ================================================================================
