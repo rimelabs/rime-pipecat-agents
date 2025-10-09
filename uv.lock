@@ -1662,7 +1662,7 @@ wheels = [
 
 [[package]]
 name = "pipecat-ai"
-version = "0.0.88"
+version = "0.0.89"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiofiles" },
@@ -1683,9 +1683,9 @@ dependencies = [
     { name = "soxr" },
     { name = "wait-for2", marker = "python_full_version < '3.12'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e5/09/53f7a9376929e353ff070ca75cacdfb8527a0ec31ddb16289dac4523b136/pipecat_ai-0.0.88.tar.gz", hash = "sha256:67cfda207fdcfce3cad7aa5a63e5fbf8b346598ec1d9e1edda7b4a4284e22023", size = 10698145, upload-time = "2025-10-07T21:20:13.17Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/4b/66/d5d9a0a7678463202f59507dd81d5dd5b14397ea71170af5292fcfae0846/pipecat_ai-0.0.89.tar.gz", hash = "sha256:f75669264f6ec0bfb2d68a36abe1d546b44be32b6d46b2ea8b39117f6a676e38", size = 10697901, upload-time = "2025-10-08T01:56:52.092Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/1f/21/cdc004df16edff50a9ee49aaa2ebe99e210ddfa5409568c77b85815d408e/pipecat_ai-0.0.88-py3-none-any.whl", hash = "sha256:1aec2555dbe8239232d76827dfcb6f79ca80188e1e3765bf9ca0ef9c05b5b58b", size = 10362892, upload-time = "2025-10-07T21:20:10.735Z" },
+    { url = "https://files.pythonhosted.org/packages/8f/6a/c073098bf967c343d4918c1288105a5f3ac9d534c8d14b17f1680dd5116e/pipecat_ai-0.0.89-py3-none-any.whl", hash = "sha256:c3491c85604bd960a9162b9b1a22802d3848ff52b10fc054b1057347831507de", size = 10362653, upload-time = "2025-10-08T01:56:49.436Z" },
 ]
 
 [package.optional-dependencies]
@@ -2442,7 +2442,7 @@ requires-dist = [
     { name = "aiofiles", specifier = ">=24.1.0" },
     { name = "black", marker = "extra == 'dev'", specifier = ">=23.0.0" },
     { name = "flake8", marker = "extra == 'dev'", specifier = ">=6.0.0" },
-    { name = "pipecat-ai", extras = ["daily", "deepgram", "local", "openai", "rime", "silero", "webrtc", "websocket"], specifier = "==0.0.88" },
+    { name = "pipecat-ai", extras = ["daily", "deepgram", "local", "openai", "rime", "silero", "webrtc", "websocket"], specifier = "==0.0.89" },
     { name = "pipecat-ai-small-webrtc-prebuilt", specifier = "==1.0.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0.0" },
     { name = "python-dotenv", specifier = "==1.1.1" },

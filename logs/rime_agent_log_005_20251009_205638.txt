@@ -1,0 +1,6 @@
+2025-10-09 20:56:38.206 | INFO     | logging_config:setup_logging:62 - ================================================================================
+2025-10-09 20:56:38.206 | INFO     | logging_config:setup_logging:63 - Rime Pipecat Agent Starting - Session 5
+2025-10-09 20:56:38.206 | INFO     | logging_config:setup_logging:64 - Log file: logs/rime_agent_log_005_20251009_205638.txt
+2025-10-09 20:56:38.206 | INFO     | logging_config:setup_logging:65 - Timestamp: 2025-10-09T20:56:38.206820
+2025-10-09 20:56:38.206 | INFO     | logging_config:setup_logging:66 - ================================================================================
+2025-10-09 20:56:38.206 | INFO     | __main__:<module>:26 - Rime Agent starting up. Logs will be written to: logs/rime_agent_log_005_20251009_205638.txt
