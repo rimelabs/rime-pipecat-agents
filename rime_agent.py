@@ -26,8 +26,9 @@ async def bot(runner_args):
     session = aiohttp.ClientSession()  
     tts = RimeHttpTTSService(  
         api_key=os.getenv("RIME_API_KEY"),  
-        voice_id="glacier",  
+        voice_id="eva",  
         model="mistv2",  
+        sample_rate=8000,
         aiohttp_session=session,  
     )  
       
