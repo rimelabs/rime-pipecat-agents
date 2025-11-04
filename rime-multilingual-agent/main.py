@@ -1,24 +1,3 @@
-"""A dynamic restaurant reservation flow example for Pipecat Flows.
-
-This example demonstrates a restaurant reservation system using dynamic flows where
-conversation paths are determined at runtime. The flow handles:
-
-1. Greeting and party size collection
-2. Time preference gathering
-3. Availability checking with mock reservation system
-4. Confirmation and booking
-
-Multi-LLM Support:
-Set LLM_PROVIDER environment variable to choose your LLM provider.
-Supported: openai (default), anthropic, google, aws
-
-Requirements:
-- CARTESIA_API_KEY (for TTS)
-- DEEPGRAM_API_KEY (for STT)
-- DAILY_API_KEY (for transport)
-- LLM API key (varies by provider - see env.example)
-"""
-
 import asyncio
 import os
 import sys
