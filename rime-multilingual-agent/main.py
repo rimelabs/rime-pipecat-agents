@@ -274,6 +274,7 @@ async def run_bot(
     rtvi_processor = RTVIProcessor()
     rtvi_observer = RTVIObserver(rtvi_processor)
     session = aiohttp.ClientSession()
+
     stt = DeepgramSTTService(
         api_key=DEEPGRAM_API_KEY,
         audio_passthrough=True,
@@ -296,7 +297,6 @@ async def run_bot(
 
     context = LLMContext()
     context_aggregator = LLMContextAggregatorPair(context)
-    
 
     pipeline = Pipeline(
         [
@@ -311,7 +311,12 @@ async def run_bot(
         ]
     )
 
-    task = PipelineTask(pipeline, params=PipelineParams(allow_interruptions=True))
+    task = PipelineTask(
+        pipeline,
+        params=PipelineParams(enable_metrics=True, enable_usage_metrics=True),
+        enable_tracing=True,
+        enable_turn_tracking=True,
+    )
 
     # Initialize flow manager in dynamic mode
     flow_manager = FlowManager(
