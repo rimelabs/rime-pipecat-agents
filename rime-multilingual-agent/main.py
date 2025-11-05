@@ -1,6 +1,7 @@
 import asyncio
 import os
 import sys
+from deepgram import LiveOptions
 from pipecat.services.openai.llm import OpenAILLMService
 from dotenv import load_dotenv
 from loguru import logger
@@ -9,14 +10,22 @@ from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.runner import PipelineRunner
 from pipecat.pipeline.task import PipelineParams, PipelineTask
 from pipecat.processors.aggregators.llm_context import LLMContext
-from pipecat.processors.aggregators.llm_response_universal import LLMContextAggregatorPair
+from pipecat.processors.aggregators.llm_response_universal import (
+    LLMContextAggregatorPair,
+)
 from pipecat.runner.types import RunnerArguments
 from pipecat.runner.utils import create_transport
 from pipecat.services.deepgram.stt import DeepgramSTTService
 from pipecat.services.rime.tts import RimeHttpTTSService
 from pipecat.transports.base_transport import BaseTransport, TransportParams
 import aiohttp
-from pipecat_flows import FlowArgs, FlowManager, FlowResult, FlowsFunctionSchema, NodeConfig
+from pipecat_flows import (
+    FlowArgs,
+    FlowManager,
+    FlowResult,
+    FlowsFunctionSchema,
+    NodeConfig,
+)
 
 load_dotenv(override=True)
 RIME_VOICE_ID = "astra"
@@ -66,7 +75,14 @@ class MockReservationSystem:
         # If not available, suggest alternative times
         alternatives = []
         if not is_available:
-            base_times = ["5:00 PM", "6:00 PM", "7:00 PM", "8:00 PM", "9:00 PM", "10:00 PM"]
+            base_times = [
+                "5:00 PM",
+                "6:00 PM",
+                "7:00 PM",
+                "8:00 PM",
+                "9:00 PM",
+                "10:00 PM",
+            ]
             alternatives = [t for t in base_times if t not in self.booked_times]
 
         return is_available, alternatives
@@ -104,17 +120,24 @@ async def check_availability(args: FlowArgs) -> tuple[TimeResult, NodeConfig]:
     party_size = args["party_size"]
 
     # Check availability with mock API
-    is_available, alternative_times = await reservation_system.check_availability(party_size, time)
+    is_available, alternative_times = await reservation_system.check_availability(
+        party_size, time
+    )
 
     result = TimeResult(
-        status="success", time=time, available=is_available, alternative_times=alternative_times
+        status="success",
+        time=time,
+        available=is_available,
+        alternative_times=alternative_times,
     )
 
     if is_available:
         logger.debug("Time is available, transitioning to confirmation node")
         next_node = create_confirmation_node()
     else:
-        logger.debug(f"Time not available, storing alternatives: {result['alternative_times']}")
+        logger.debug(
+            f"Time not available, storing alternatives: {result['alternative_times']}"
+        )
         next_node = create_no_availability_node(result["alternative_times"])
 
     return result, next_node
@@ -254,22 +277,28 @@ async def run_bot(
     if not OPENAI_API_KEY:
         raise ValueError("OPENAI_API_KEY environment variable not set")
     session = aiohttp.ClientSession()
-    stt = DeepgramSTTService(api_key=os.getenv("DEEPGRAM_API_KEY"))
+    stt = DeepgramSTTService(
+        api_key=DEEPGRAM_API_KEY,
+        audio_passthrough=True,
+        live_options=LiveOptions(
+            language="multi",
+        ),
+    )
     tts = RimeHttpTTSService(
-            api_key=RIME_API_KEY,
-            voice_id=RIME_VOICE_ID,
-            aiohttp_session=session,
-            model=RIME_MODEL,
-        )
+        api_key=RIME_API_KEY,
+        voice_id=RIME_VOICE_ID,
+        aiohttp_session=session,
+        model=RIME_MODEL,
+    )
     # LLM service is created using the create_llm function from utils.py
     # Default is OpenAI; can be changed by setting LLM_PROVIDER environment variable
     llm = OpenAILLMService(
-            model="gpt-4o",
-            api_key=os.getenv("OPENAI_API_KEY"),
-            params=OpenAILLMService.InputParams(
-                temperature=0.7,
-            ),
-        )
+        model="gpt-4o",
+        api_key=os.getenv("OPENAI_API_KEY"),
+        params=OpenAILLMService.InputParams(
+            temperature=0.7,
+        ),
+    )
 
     context = LLMContext()
     context_aggregator = LLMContextAggregatorPair(context)
