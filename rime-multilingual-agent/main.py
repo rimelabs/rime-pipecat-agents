@@ -1,7 +1,7 @@
 import asyncio
 import os
 import sys
-from deepgram import LiveOptions
+from builtins import ValueError, bool, int, str, tuple, list, globals
 from pipecat.services.openai.llm import OpenAILLMService
 from dotenv import load_dotenv
 from loguru import logger
@@ -26,6 +26,8 @@ from pipecat_flows import (
     FlowsFunctionSchema,
     NodeConfig,
 )
+from deepgram import LiveOptions
+
 
 load_dotenv(override=True)
 RIME_VOICE_ID = "astra"
