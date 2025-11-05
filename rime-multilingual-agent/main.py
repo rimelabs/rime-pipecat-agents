@@ -19,6 +19,7 @@ from pipecat.services.deepgram.stt import DeepgramSTTService
 from pipecat.services.rime.tts import RimeHttpTTSService
 from pipecat.transports.base_transport import BaseTransport, TransportParams
 import aiohttp
+from pipecat.processors.frameworks.rtvi import RTVIProcessor, RTVIObserver
 from pipecat_flows import (
     FlowArgs,
     FlowManager,
@@ -38,14 +39,6 @@ RIME_API_KEY = os.getenv("RIME_API_KEY")
 DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-SYSTEM_PROMPT = """
-You are witty, friendly, but professional AI assistant powered by Rime AI, a TTS provider
-with the most realistic voices on the market.
-
-Everything you say will be spoken by a tts model.
-
-You are built using the Pipecat framework, which is a powerful tool for building voice agents.
-"""
 
 transport_params = {
     "webrtc": lambda: TransportParams(
@@ -278,6 +271,8 @@ async def run_bot(
         raise ValueError("DEEPGRAM_API_KEY environment variable not set")
     if not OPENAI_API_KEY:
         raise ValueError("OPENAI_API_KEY environment variable not set")
+    rtvi_processor = RTVIProcessor()
+    rtvi_observer = RTVIObserver(rtvi_processor)
     session = aiohttp.ClientSession()
     stt = DeepgramSTTService(
         api_key=DEEPGRAM_API_KEY,
@@ -297,13 +292,11 @@ async def run_bot(
     llm = OpenAILLMService(
         model="gpt-4o",
         api_key=os.getenv("OPENAI_API_KEY"),
-        params=OpenAILLMService.InputParams(
-            temperature=0.7,
-        ),
     )
 
     context = LLMContext()
     context_aggregator = LLMContextAggregatorPair(context)
+    
 
     pipeline = Pipeline(
         [
@@ -312,6 +305,7 @@ async def run_bot(
             context_aggregator.user(),
             llm,
             tts,
+            rtvi_processor,
             transport.output(),
             context_aggregator.assistant(),
         ]
@@ -331,6 +325,8 @@ async def run_bot(
     async def on_client_connected(transport, client):
         logger.info("Client connected")
         # Kick off the conversation with the initial node
+        print("Client connected")
+        task.add_observer(rtvi_observer)
         await flow_manager.initialize(create_initial_node(wait_for_user))
 
     @transport.event_handler("on_client_disconnected")
