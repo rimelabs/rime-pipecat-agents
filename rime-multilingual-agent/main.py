@@ -13,6 +13,7 @@ from pipecat.processors.aggregators.llm_context import LLMContext
 from pipecat.processors.aggregators.llm_response_universal import (
     LLMContextAggregatorPair,
 )
+from pipecat.frames.frames import TTSUpdateSettingsFrame
 from pipecat.runner.types import RunnerArguments
 from pipecat.runner.utils import create_transport
 from pipecat.services.deepgram.stt import DeepgramSTTService
@@ -29,6 +30,18 @@ from pipecat_flows import (
     NodeConfig,
 )
 from deepgram import LiveOptions
+from openai import AsyncOpenAI
+import json
+from pipecat.frames.frames import (
+    Frame,
+    TranscriptionFrame,
+    SystemFrame,
+    UserStoppedSpeakingFrame,
+    EndFrame,
+)
+from pipecat.processors.frame_processor import FrameProcessor, FrameDirection
+from openai import AsyncOpenAI
+import json
 
 
 load_dotenv(override=True)
@@ -39,12 +52,16 @@ RIME_URL = "wss://users-ws.rime.ai/ws2"
 RIME_API_KEY = os.getenv("RIME_API_KEY")
 DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-
+language_detected = "eng"
 RIME_LANGUAGE_MAP = {
     "eng": {"speakerId": "andromeda", "modelId": "arcana", "lang": Language.EN},
     "spa": {"speakerId": "sirius", "modelId": "arcana", "lang": Language.ES},
     "fra": {"speakerId": "serrin_joseph", "modelId": "arcana", "lang": Language.FR},
-    "ger": {"speakerId": "bergmann_katharina", "modelId": "arcana", "lang": Language.DE},
+    "ger": {
+        "speakerId": "bergmann_katharina",
+        "modelId": "arcana",
+        "lang": Language.DE,
+    },
 }
 
 
@@ -57,148 +74,21 @@ transport_params = {
 }
 
 
-class LanguageResult(FlowResult):
-    language: str
-    status: str
-
-
-# Function handlers
-async def detect_language(args: FlowArgs) -> tuple[LanguageResult, NodeConfig]:
-    """Detect the language that user is speaking."""
-    language = args["language"]
-    result = LanguageResult(language=language, status="success")
-    logger.info(f"Detected language: {language}")
-    if language in RIME_LANGUAGE_MAP:
-        next_node = create_language_specific_node(language)
-    else:
-        next_node = (
-            create_language_not_supported_node()
-        )  # FIXED: was language_not_supported_node()
-
-    return result, next_node
-
-
-async def end_conversation(args: FlowArgs) -> tuple[None, NodeConfig]:
-    """Handle conversation end."""
-    return None, create_end_node()
-
-
-# Create function schemas
-language_detection_schema = FlowsFunctionSchema(
-    name="detect_language",
-    description="Detect the language that user is speaking.",
-    properties={
-        "language": {"type": "string", "enum": ["eng", "spa", "fra", "ger", "hin"]}
-    },
-    required=["language"],
-    handler=detect_language,
-)
-
-end_conversation_schema = FlowsFunctionSchema(
-    name="end_conversation",
-    description="End the conversation",
-    properties={},
-    required=[],
-    handler=end_conversation,
-)
-
-
 # Node configurations
 def create_initial_node() -> NodeConfig:
-    """Create initial node for detecting the language that user is speaking."""
+    global language_detected
     return {
-        "name": "initial",
+        "name": "conversation",
         "role_messages": [
             {
                 "role": "system",
-                "content": "You are a language detector and a restaurant reservation assistant for La Maison. Be casual and friendly. This is a voice conversation, so avoid special characters and emojis.",
+                "content": f"You are a helpful assistant. Be casual and friendly. {language_detected} if it other than english, french , spanish , german then say you are not able to understand them and end the conversation.",
             }
         ],
         "task_messages": [
-            {
-                "role": "system",
-                "content": "Your task is to detect the language the user is speaking in.",
-            }
+            {"role": "system", "content": f"Have a natural conversation with the user in the language they are speaking in. {language_detected} if it other than english, french , spanish , german then say you are not able to understand them and end the conversation."}
         ],
-        "functions": [language_detection_schema],
-        "respond_immediately": False,
-    }
-
-
-async def update_tts_language(action: dict, flow_manager: FlowManager):
-    """Update TTS settings based on detected language."""
-    from pipecat.frames.frames import TTSUpdateSettingsFrame
-
-    language = action.get("language")
-    lang_config = RIME_LANGUAGE_MAP.get(language, RIME_LANGUAGE_MAP["eng"])
-
-    await flow_manager.task.queue_frame(
-        TTSUpdateSettingsFrame(
-            settings={
-                "voice_id": lang_config["speakerId"],
-                "model": lang_config["modelId"],
-                "language": lang_config["lang"],
-            }
-        )
-    )
-
-    flow_manager.state["current_language"] = language
-    logger.info(
-        f"Updated TTS to language: {language} with voice {lang_config['speakerId']}"
-    )
-
-
-async def reset_tts_to_default(action: dict, flow_manager: FlowManager):
-    """Reset TTS settings to default English configuration."""
-    from pipecat.frames.frames import TTSUpdateSettingsFrame
-
-    default_config = RIME_LANGUAGE_MAP["eng"]
-
-    await flow_manager.task.queue_frame(
-        TTSUpdateSettingsFrame(
-            settings={
-                "voice_id": default_config["speakerId"],
-                "model": default_config["modelId"],
-                "language": default_config["lang"],
-            }
-        )
-    )
-
-    flow_manager.state["current_language"] = "eng"
-    logger.info(f"Reset TTS to default English voice: {default_config['speakerId']}")
-
-
-def create_language_specific_node(language: str) -> NodeConfig:
-    """Create a node with language-specific configuration."""
-    lang_config = RIME_LANGUAGE_MAP.get(language, RIME_LANGUAGE_MAP["eng"])
-    logger.debug(f"Creating language-specific node for {language}: {lang_config}")
-    return {
-        "name": "restaurant_manager",
-        "task_messages": [
-            {
-                "role": "system",
-                "content": f"You are a restaurant reservation assistant for La Maison. Be casual and friendly. This is a voice conversation, so avoid special characters and emojis. Talk to them in the {language} language they are speaking in. Help them with their reservation and when done, end the conversation.",
-            }
-        ],
-        "functions": [language_detection_schema,end_conversation_schema],  # ADDED: function to end conversation
-        "post_actions": [
-            {"type": "function", "handler": update_tts_language, "language": language}
-        ],
-    }
-
-
-def create_language_not_supported_node() -> NodeConfig:
-    """Create a node for when the language is not supported."""
-    return {
-        "name": "language_not_supported",
-        "task_messages": [
-            {
-                "role": "system",
-                "content": "The language you are speaking in is not supported. Please speak in English, Spanish, French, German, or Hindi. After informing them, end the conversation.",
-            }
-        ],
-        "functions": [language_detection_schema,end_conversation_schema],  # ADDED: function to end conversation
-        "pre_actions": [{"type": "function", "handler": reset_tts_to_default}],
+        "functions": [],
     }
 
 
@@ -214,6 +104,86 @@ def create_end_node() -> NodeConfig:
         ],
         "post_actions": [{"type": "end_conversation"}],
     }
+
+
+class LanguageDetectionProcessor(FrameProcessor):
+    def __init__(self, api_key: str):
+        super().__init__()
+        self._client = AsyncOpenAI(api_key=api_key)
+        self._frame_buffer = []
+        self._language_detected = False
+
+    async def _detect_language(self, text: str) -> dict:
+        """Make OpenAI API call to detect language."""
+        response = await self._client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Detect the language of the user's text. Respond with JSON 'lang' for eng, spa, fra, ger",
+                },
+                {"role": "user", "content": text},
+            ],
+            response_format={"type": "json_object"},
+            temperature=0,
+        )
+        logger.info(
+            f"Language detection response: {response.choices[0].message.content}"
+        )
+        return json.loads(response.choices[0].message.content)
+
+    async def process_frame(self, frame: Frame, direction: FrameDirection):
+        """Process frames and detect language before passing to LLM."""
+        await super().process_frame(frame, direction)
+
+        # Handle UserStoppedSpeakingFrame and EndFrame FIRST
+        if isinstance(frame, (UserStoppedSpeakingFrame, EndFrame)):
+            # User finished speaking OR pipeline ending - now detect language
+            if self._frame_buffer:
+                # Combine all buffered text
+                full_text = " ".join(
+                    f.text
+                    for f, _ in self._frame_buffer
+                    if isinstance(f, TranscriptionFrame)
+                )
+                logger.info(f"Full text: {full_text}")
+                language_result = await self._detect_language(full_text)
+                print(f"Detected language: {language_result}")
+                detected_lang = language_result.get("lang")
+                if detected_lang in RIME_LANGUAGE_MAP:
+                    global language_detected
+                    lang_config = RIME_LANGUAGE_MAP[detected_lang]
+                    tts_update_frame = TTSUpdateSettingsFrame(
+                        settings={
+                            "voice_id": lang_config["speakerId"],
+                            "model": lang_config["modelId"],
+                            "language": lang_config["lang"],
+                        }
+                    )
+                    language_detected = detected_lang
+                    await self.push_frame(tts_update_frame, direction)
+                    logger.info(f"Updated TTS settings for language: {detected_lang}")
+
+                # Now push all buffered frames downstream to LLM
+                for buffered_frame, buffered_direction in self._frame_buffer:
+                    await self.push_frame(buffered_frame, buffered_direction)
+                self._frame_buffer.clear()
+
+            # Push the UserStoppedSpeakingFrame or EndFrame
+            await self.push_frame(frame, direction)
+
+        # Then handle other system frames
+        elif isinstance(frame, SystemFrame):
+            await self.push_frame(frame, direction)
+
+        elif isinstance(frame, TranscriptionFrame):
+            # Keep buffering ALL transcription frames
+            self._frame_buffer.append((frame, direction))
+            # Don't push yet - wait for user to stop speaking
+
+        else:
+            # Pass through all other frames
+            await self.push_frame(frame, direction)
 
 
 # Main setup
@@ -257,6 +227,7 @@ async def run_bot(
         [
             transport.input(),
             stt,
+            LanguageDetectionProcessor(api_key=OPENAI_API_KEY),
             context_aggregator.user(),
             llm,
             tts,
