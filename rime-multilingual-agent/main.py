@@ -54,14 +54,10 @@ DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 language_detected = "eng"
 RIME_LANGUAGE_MAP = {
-    "eng": {"speakerId": "andromeda", "modelId": "arcana", "lang": Language.EN},
-    "spa": {"speakerId": "sirius", "modelId": "arcana", "lang": Language.ES},
-    "fra": {"speakerId": "serrin_joseph", "modelId": "arcana", "lang": Language.FR},
-    "ger": {
-        "speakerId": "bergmann_katharina",
-        "modelId": "arcana",
-        "lang": Language.DE,
-    },
+    "eng": {"speakerId": "andromeda", "modelId": "arcana", "lang": 'eng'},
+    "spa": {"speakerId": "sirius", "modelId": "arcana", "lang": 'spa'},
+    "fra": {"speakerId": "destin", "modelId": "arcana", "lang": 'fra'},
+    "ger": {"speakerId": "klaus", "modelId": "mistv2", "lang": 'ger'},
 }
 
 
@@ -86,7 +82,10 @@ def create_initial_node() -> NodeConfig:
             }
         ],
         "task_messages": [
-            {"role": "system", "content": f"Have a natural conversation with the user in the language they are speaking in. {language_detected} if it other than english, french , spanish , german then say you are not able to understand them and end the conversation."}
+            {
+                "role": "system",
+                "content": f"Have a natural conversation with the user in the language they are speaking in. {language_detected} if it other than english, french , spanish , german then say you are not able to understand them and end the conversation.",
+            }
         ],
         "functions": [],
     }
@@ -157,11 +156,11 @@ class LanguageDetectionProcessor(FrameProcessor):
                         settings={
                             "voice_id": lang_config["speakerId"],
                             "model": lang_config["modelId"],
-                            "language": lang_config["lang"],
+                            "lang": lang_config["lang"],
                         }
                     )
                     language_detected = detected_lang
-                    await self.push_frame(tts_update_frame, direction)
+                    await self.push_frame(tts_update_frame, FrameDirection.DOWNSTREAM)
                     logger.info(f"Updated TTS settings for language: {detected_lang}")
 
                 # Now push all buffered frames downstream to LLM
@@ -214,6 +213,9 @@ async def run_bot(
         voice_id=RIME_VOICE_ID,
         aiohttp_session=session,
         model=RIME_MODEL,
+        params=RimeHttpTTSService.InputParams(
+            language=Language.EN,
+        ),
     )
     llm = OpenAILLMService(
         model="gpt-4o",
