@@ -39,6 +39,14 @@ RIME_API_KEY = os.getenv("RIME_API_KEY")
 DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
+RIME_LANGUAGE_MAP = {
+    "eng": {"speakerId": "andromeda", "modelId": "arcana", "lang": "eng"},
+    "spa": {"speakerId": "sirius", "modelId": "arcana", "lang": "spa"},
+    "fra": {"speakerId": "serrin_joseph", "modelId": "arcana", "lang": "fra"},
+    "ger": {"speakerId": "bergmann_katharina", "modelId": "arcana", "lang": "ger"},
+    "hin": {"speakerId": "taru", "modelId": "arcana", "lang": "hin"},
+}
+
 
 transport_params = {
     "webrtc": lambda: TransportParams(
@@ -49,91 +57,23 @@ transport_params = {
 }
 
 
-# Mock reservation system
-class MockReservationSystem:
-    """Simulates a restaurant reservation system API."""
-
-    def __init__(self):
-        # Mock data: Times that are "fully booked"
-        self.booked_times = {"7:00 PM", "8:00 PM"}  # Changed to AM/PM format
-
-    async def check_availability(
-        self, party_size: int, requested_time: str
-    ) -> tuple[bool, list[str]]:
-        """Check if a table is available for the given party size and time."""
-        # Simulate API call delay
-        await asyncio.sleep(0.5)
-
-        # Check if time is booked
-        is_available = requested_time not in self.booked_times
-
-        # If not available, suggest alternative times
-        alternatives = []
-        if not is_available:
-            base_times = [
-                "5:00 PM",
-                "6:00 PM",
-                "7:00 PM",
-                "8:00 PM",
-                "9:00 PM",
-                "10:00 PM",
-            ]
-            alternatives = [t for t in base_times if t not in self.booked_times]
-
-        return is_available, alternatives
-
-
-# Initialize mock system
-reservation_system = MockReservationSystem()
-
-
-# Type definitions for function results
-class PartySizeResult(FlowResult):
-    size: int
+class LanguageResult(FlowResult):
+    language: str
     status: str
-
-
-class TimeResult(FlowResult):
-    status: str
-    time: str
-    available: bool
-    alternative_times: list[str]
 
 
 # Function handlers
-async def collect_party_size(args: FlowArgs) -> tuple[PartySizeResult, NodeConfig]:
-    """Process party size collection."""
-    size = args["size"]
-    result = PartySizeResult(size=size, status="success")
-    next_node = create_time_selection_node()
-    return result, next_node
-
-
-async def check_availability(args: FlowArgs) -> tuple[TimeResult, NodeConfig]:
-    """Check reservation availability and return result."""
-    time = args["time"]
-    party_size = args["party_size"]
-
-    # Check availability with mock API
-    is_available, alternative_times = await reservation_system.check_availability(
-        party_size, time
-    )
-
-    result = TimeResult(
-        status="success",
-        time=time,
-        available=is_available,
-        alternative_times=alternative_times,
-    )
-
-    if is_available:
-        logger.debug("Time is available, transitioning to confirmation node")
-        next_node = create_confirmation_node()
+async def detect_language(args: FlowArgs) -> tuple[LanguageResult, NodeConfig]:
+    """Detect the language that user is speaking."""
+    language = args["language"]
+    result = LanguageResult(language=language, status="success")
+    logger.info(f"Detected language: {language}")
+    if language in RIME_LANGUAGE_MAP:
+        next_node = create_language_specific_node(language)
     else:
-        logger.debug(
-            f"Time not available, storing alternatives: {result['alternative_times']}"
-        )
-        next_node = create_no_availability_node(result["alternative_times"])
+        next_node = (
+            create_language_not_supported_node()
+        )  # FIXED: was language_not_supported_node()
 
     return result, next_node
 
@@ -144,27 +84,14 @@ async def end_conversation(args: FlowArgs) -> tuple[None, NodeConfig]:
 
 
 # Create function schemas
-party_size_schema = FlowsFunctionSchema(
-    name="collect_party_size",
-    description="Record the number of people in the party",
-    properties={"size": {"type": "integer", "minimum": 1, "maximum": 12}},
-    required=["size"],
-    handler=collect_party_size,
-)
-
-availability_schema = FlowsFunctionSchema(
-    name="check_availability",
-    description="Check availability for requested time",
+language_detection_schema = FlowsFunctionSchema(
+    name="detect_language",
+    description="Detect the language that user is speaking.",
     properties={
-        "time": {
-            "type": "string",
-            "pattern": "^([5-9]|10):00 PM$",  # Matches "5:00 PM" through "10:00 PM"
-            "description": "Reservation time (e.g., '6:00 PM')",
-        },
-        "party_size": {"type": "integer"},
+        "language": {"type": "string", "enum": ["eng", "spa", "fra", "ger", "hin"]}
     },
-    required=["time", "party_size"],
-    handler=check_availability,
+    required=["language"],
+    handler=detect_language,
 )
 
 end_conversation_schema = FlowsFunctionSchema(
@@ -177,72 +104,99 @@ end_conversation_schema = FlowsFunctionSchema(
 
 
 # Node configurations
-def create_initial_node(wait_for_user: bool) -> NodeConfig:
-    """Create initial node for party size collection."""
+def create_initial_node() -> NodeConfig:
+    """Create initial node for detecting the language that user is speaking."""
     return {
         "name": "initial",
         "role_messages": [
             {
                 "role": "system",
-                "content": "You are a restaurant reservation assistant for La Maison, an upscale French restaurant. Be casual and friendly. This is a voice conversation, so avoid special characters and emojis.",
+                "content": "You are a language detector and a restaurant reservation assistant for La Maison. Be casual and friendly. This is a voice conversation, so avoid special characters and emojis.",
             }
         ],
         "task_messages": [
             {
                 "role": "system",
-                "content": "Warmly greet the customer and ask how many people are in their party. This is your only job for now; if the customer asks for something else, politely remind them you can't do it.",
+                "content": "Your task is to detect the language the user is speaking in.",
             }
         ],
-        "functions": [party_size_schema],
-        "respond_immediately": not wait_for_user,
+        "functions": [language_detection_schema],
+        "respond_immediately": False,
     }
 
 
-def create_time_selection_node() -> NodeConfig:
-    """Create node for time selection and availability check."""
-    logger.debug("Creating time selection node")
+async def update_tts_language(action: dict, flow_manager: FlowManager):
+    """Update TTS settings based on detected language."""
+    from pipecat.frames.frames import TTSUpdateSettingsFrame
+
+    language = action.get("language")
+    lang_config = RIME_LANGUAGE_MAP.get(language, RIME_LANGUAGE_MAP["eng"])
+
+    await flow_manager.task.queue_frame(
+        TTSUpdateSettingsFrame(
+            settings={
+                "voice_id": lang_config["speakerId"],
+                "model": lang_config["modelId"],
+            }
+        )
+    )
+
+    flow_manager.state["current_language"] = language
+    logger.info(
+        f"Updated TTS to language: {language} with voice {lang_config['speakerId']}"
+    )
+
+
+async def reset_tts_to_default(action: dict, flow_manager: FlowManager):
+    """Reset TTS settings to default English configuration."""
+    from pipecat.frames.frames import TTSUpdateSettingsFrame
+
+    default_config = RIME_LANGUAGE_MAP["eng"]
+
+    await flow_manager.task.queue_frame(
+        TTSUpdateSettingsFrame(
+            settings={
+                "voice_id": default_config["speakerId"],
+                "model": default_config["modelId"],
+            }
+        )
+    )
+
+    flow_manager.state["current_language"] = "eng"
+    logger.info(f"Reset TTS to default English voice: {default_config['speakerId']}")
+
+
+def create_language_specific_node(language: str) -> NodeConfig:
+    """Create a node with language-specific configuration."""
+    lang_config = RIME_LANGUAGE_MAP.get(language, RIME_LANGUAGE_MAP["eng"])
+    logger.debug(f"Creating language-specific node for {language}: {lang_config}")
     return {
-        "name": "get_time",
+        "name": "restaurant_manager",
         "task_messages": [
             {
                 "role": "system",
-                "content": "Ask what time they'd like to dine. Restaurant is open 5 PM to 10 PM.",
+                "content": f"You are a restaurant reservation assistant for La Maison. Be casual and friendly. This is a voice conversation, so avoid special characters and emojis. Talk to them in the {language} language they are speaking in. Help them with their reservation and when done, end the conversation.",
             }
         ],
-        "functions": [availability_schema],
+        "functions": [language_detection_schema,end_conversation_schema],  # ADDED: function to end conversation
+        "post_actions": [
+            {"type": "function", "handler": update_tts_language, "language": language}
+        ],
     }
 
 
-def create_confirmation_node() -> NodeConfig:
-    """Create confirmation node for successful reservations."""
+def create_language_not_supported_node() -> NodeConfig:
+    """Create a node for when the language is not supported."""
     return {
-        "name": "confirm",
+        "name": "language_not_supported",
         "task_messages": [
             {
                 "role": "system",
-                "content": "Confirm the reservation details and ask if they need anything else.",
+                "content": "The language you are speaking in is not supported. Please speak in English, Spanish, French, German, or Hindi. After informing them, end the conversation.",
             }
         ],
-        "functions": [end_conversation_schema],
-    }
-
-
-def create_no_availability_node(alternative_times: list[str]) -> NodeConfig:
-    """Create node for handling no availability."""
-    times_list = ", ".join(alternative_times)
-    return {
-        "name": "no_availability",
-        "task_messages": [
-            {
-                "role": "system",
-                "content": (
-                    f"Apologize that the requested time is not available. "
-                    f"Suggest these alternative times: {times_list}. "
-                    "Ask if they'd like to try one of these times."
-                ),
-            }
-        ],
-        "functions": [availability_schema, end_conversation_schema],
+        "functions": [language_detection_schema,end_conversation_schema],  # ADDED: function to end conversation
+        "pre_actions": [{"type": "function", "handler": reset_tts_to_default}],
     }
 
 
@@ -253,7 +207,7 @@ def create_end_node() -> NodeConfig:
         "task_messages": [
             {
                 "role": "system",
-                "content": "Thank them and end the conversation.",
+                "content": "Thank them and say goodbye.",
             }
         ],
         "post_actions": [{"type": "end_conversation"}],
@@ -271,6 +225,7 @@ async def run_bot(
         raise ValueError("DEEPGRAM_API_KEY environment variable not set")
     if not OPENAI_API_KEY:
         raise ValueError("OPENAI_API_KEY environment variable not set")
+
     rtvi_processor = RTVIProcessor()
     rtvi_observer = RTVIObserver(rtvi_processor)
     session = aiohttp.ClientSession()
@@ -288,8 +243,6 @@ async def run_bot(
         aiohttp_session=session,
         model=RIME_MODEL,
     )
-    # LLM service is created using the create_llm function from utils.py
-    # Default is OpenAI; can be changed by setting LLM_PROVIDER environment variable
     llm = OpenAILLMService(
         model="gpt-4o",
         api_key=os.getenv("OPENAI_API_KEY"),
@@ -329,10 +282,9 @@ async def run_bot(
     @transport.event_handler("on_client_connected")
     async def on_client_connected(transport, client):
         logger.info("Client connected")
-        # Kick off the conversation with the initial node
         print("Client connected")
         task.add_observer(rtvi_observer)
-        await flow_manager.initialize(create_initial_node(wait_for_user))
+        await flow_manager.initialize(create_initial_node())
 
     @transport.event_handler("on_client_disconnected")
     async def on_client_disconnected(transport, client):
@@ -345,9 +297,7 @@ async def run_bot(
 
 async def bot(runner_args: RunnerArguments):
     """Main bot entry point compatible with Pipecat Cloud."""
-    # Use the global flag if available, otherwise default to False
     wait_for_user = globals().get("WAIT_FOR_USER", False)
-
     transport = await create_transport(runner_args, transport_params)
     await run_bot(transport, runner_args, wait_for_user)
 
@@ -356,7 +306,6 @@ if __name__ == "__main__":
     import argparse
     import sys
 
-    # Parse our custom argument first
     parser = argparse.ArgumentParser(description="Restaurant reservation bot")
     parser.add_argument(
         "--wait-for-user",
@@ -364,17 +313,12 @@ if __name__ == "__main__":
         help="If set, the bot will wait for the user to speak first",
     )
 
-    # Parse only our known args, leave the rest for the runner
     args, remaining = parser.parse_known_args()
-
-    # Store the flag globally so bot() can access it
     WAIT_FOR_USER = args.wait_for_user
 
-    # Remove our custom arg from sys.argv and let the runner handle the rest
     if "--wait-for-user" in sys.argv:
         sys.argv.remove("--wait-for-user")
 
-    # Now run the standard runner
     from pipecat.runner.run import main
 
     main()
