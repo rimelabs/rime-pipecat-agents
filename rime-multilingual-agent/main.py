@@ -17,6 +17,7 @@ from pipecat.runner.types import RunnerArguments
 from pipecat.runner.utils import create_transport
 from pipecat.services.deepgram.stt import DeepgramSTTService
 from pipecat.services.rime.tts import RimeHttpTTSService
+from pipecat.transcriptions.language import Language
 from pipecat.transports.base_transport import BaseTransport, TransportParams
 import aiohttp
 from pipecat.processors.frameworks.rtvi import RTVIProcessor, RTVIObserver
@@ -40,11 +41,10 @@ DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 RIME_LANGUAGE_MAP = {
-    "eng": {"speakerId": "andromeda", "modelId": "arcana", "lang": "eng"},
-    "spa": {"speakerId": "sirius", "modelId": "arcana", "lang": "spa"},
-    "fra": {"speakerId": "serrin_joseph", "modelId": "arcana", "lang": "fra"},
-    "ger": {"speakerId": "bergmann_katharina", "modelId": "arcana", "lang": "ger"},
-    "hin": {"speakerId": "taru", "modelId": "arcana", "lang": "hin"},
+    "eng": {"speakerId": "andromeda", "modelId": "arcana", "lang": Language.EN},
+    "spa": {"speakerId": "sirius", "modelId": "arcana", "lang": Language.ES},
+    "fra": {"speakerId": "serrin_joseph", "modelId": "arcana", "lang": Language.FR},
+    "ger": {"speakerId": "bergmann_katharina", "modelId": "arcana", "lang": Language.DE},
 }
 
 
@@ -137,6 +137,7 @@ async def update_tts_language(action: dict, flow_manager: FlowManager):
             settings={
                 "voice_id": lang_config["speakerId"],
                 "model": lang_config["modelId"],
+                "language": lang_config["lang"],
             }
         )
     )
@@ -158,6 +159,7 @@ async def reset_tts_to_default(action: dict, flow_manager: FlowManager):
             settings={
                 "voice_id": default_config["speakerId"],
                 "model": default_config["modelId"],
+                "language": default_config["lang"],
             }
         )
     )
