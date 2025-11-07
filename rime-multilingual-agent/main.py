@@ -191,9 +191,7 @@ class LanguageDetectionProcessor(FrameProcessor):
 
 
 # Main setup
-async def run_bot(
-    transport: BaseTransport, runner_args: RunnerArguments, wait_for_user: bool = False
-):
+async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
     """Run the restaurant reservation bot."""
     if not RIME_API_KEY:
         raise ValueError("RIME_API_KEY environment variable not set")
@@ -280,28 +278,11 @@ async def run_bot(
 
 async def bot(runner_args: RunnerArguments):
     """Main bot entry point compatible with Pipecat Cloud."""
-    wait_for_user = globals().get("WAIT_FOR_USER", False)
     transport = await create_transport(runner_args, transport_params)
-    await run_bot(transport, runner_args, wait_for_user)
+    await run_bot(transport, runner_args)
 
 
 if __name__ == "__main__":
-    import argparse
-    import sys
-
-    parser = argparse.ArgumentParser(description="Restaurant reservation bot")
-    parser.add_argument(
-        "--wait-for-user",
-        action="store_true",
-        help="If set, the bot will wait for the user to speak first",
-    )
-
-    args, remaining = parser.parse_known_args()
-    WAIT_FOR_USER = args.wait_for_user
-
-    if "--wait-for-user" in sys.argv:
-        sys.argv.remove("--wait-for-user")
-
     from pipecat.runner.run import main
 
     main()
