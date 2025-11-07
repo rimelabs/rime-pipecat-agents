@@ -52,13 +52,19 @@ RIME_URL = "wss://users-ws.rime.ai/ws2"
 RIME_API_KEY = os.getenv("RIME_API_KEY")
 DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-language_detected = "eng"
+
 RIME_LANGUAGE_MAP = {
     "eng": {"speakerId": "andromeda", "modelId": "arcana", "lang": 'eng'},
     "spa": {"speakerId": "sirius", "modelId": "arcana", "lang": 'spa'},
     "fra": {"speakerId": "destin", "modelId": "arcana", "lang": 'fra'},
     "ger": {"speakerId": "klaus", "modelId": "mistv2", "lang": 'ger'},
 }
+
+
+class SharedState:
+    """Shared state container for the conversation."""
+    def __init__(self):
+        self.language_detected = "eng"
 
 
 transport_params = {
@@ -71,20 +77,19 @@ transport_params = {
 
 
 # Node configurations
-def create_initial_node() -> NodeConfig:
-    global language_detected
+def create_initial_node(shared_state: SharedState) -> NodeConfig:
     return {
         "name": "conversation",
         "role_messages": [
             {
                 "role": "system",
-                "content": f"You are a helpful assistant. Be casual and friendly. {language_detected} if it other than english, french , spanish , german then say you are not able to understand them and end the conversation.",
+                "content": f"You are a helpful assistant. Be casual and friendly. {shared_state.language_detected} if it other than english, french , spanish , german then say you are not able to understand them and end the conversation.",
             }
         ],
         "task_messages": [
             {
                 "role": "system",
-                "content": f"Have a natural conversation with the user in the language they are speaking in. {language_detected} if it other than english, french , spanish , german then say you are not able to understand them and end the conversation.",
+                "content": f"Have a natural conversation with the user in the language they are speaking in. {shared_state.language_detected} if it other than english, french , spanish , german then say you are not able to understand them and end the conversation.",
             }
         ],
         "functions": [],
@@ -106,10 +111,11 @@ def create_end_node() -> NodeConfig:
 
 
 class LanguageDetectionProcessor(FrameProcessor):
-    def __init__(self, api_key: str):
+    def __init__(self, api_key: str, shared_state: SharedState):
         super().__init__()
         self._client = AsyncOpenAI(api_key=api_key)
         self._frame_buffer = []
+        self._shared_state = shared_state
         self._language_detected = False
 
     async def _detect_language(self, text: str) -> dict:
@@ -150,7 +156,7 @@ class LanguageDetectionProcessor(FrameProcessor):
                 print(f"Detected language: {language_result}")
                 detected_lang = language_result.get("lang")
                 if detected_lang in RIME_LANGUAGE_MAP:
-                    global language_detected
+                    self._shared_state.language_detected = detected_lang
                     lang_config = RIME_LANGUAGE_MAP[detected_lang]
                     tts_update_frame = TTSUpdateSettingsFrame(
                         settings={
@@ -159,7 +165,6 @@ class LanguageDetectionProcessor(FrameProcessor):
                             "lang": lang_config["lang"],
                         }
                     )
-                    language_detected = detected_lang
                     await self.push_frame(tts_update_frame, FrameDirection.DOWNSTREAM)
                     logger.info(f"Updated TTS settings for language: {detected_lang}")
 
@@ -197,6 +202,9 @@ async def run_bot(
     if not OPENAI_API_KEY:
         raise ValueError("OPENAI_API_KEY environment variable not set")
 
+    # Create shared state for the conversation
+    shared_state = SharedState()
+    
     rtvi_processor = RTVIProcessor()
     rtvi_observer = RTVIObserver(rtvi_processor)
     session = aiohttp.ClientSession()
@@ -229,7 +237,7 @@ async def run_bot(
         [
             transport.input(),
             stt,
-            LanguageDetectionProcessor(api_key=OPENAI_API_KEY),
+            LanguageDetectionProcessor(api_key=OPENAI_API_KEY, shared_state=shared_state),
             context_aggregator.user(),
             llm,
             tts,
@@ -259,7 +267,7 @@ async def run_bot(
         logger.info("Client connected")
         print("Client connected")
         task.add_observer(rtvi_observer)
-        await flow_manager.initialize(create_initial_node())
+        await flow_manager.initialize(create_initial_node(shared_state))
 
     @transport.event_handler("on_client_disconnected")
     async def on_client_disconnected(transport, client):
