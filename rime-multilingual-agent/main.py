@@ -1,11 +1,21 @@
-import asyncio
+import json
 import os
-import sys
-from builtins import ValueError, bool, int, str, tuple, list, globals
-from pipecat.services.openai.llm import OpenAILLMService
+
+import aiohttp
+from deepgram import LiveOptions
 from dotenv import load_dotenv
 from loguru import logger
+from openai import AsyncOpenAI
+
 from pipecat.audio.vad.silero import SileroVADAnalyzer
+from pipecat.frames.frames import (
+    EndFrame,
+    Frame,
+    SystemFrame,
+    TranscriptionFrame,
+    TTSUpdateSettingsFrame,
+    UserStoppedSpeakingFrame,
+)
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.runner import PipelineRunner
 from pipecat.pipeline.task import PipelineParams, PipelineTask
@@ -13,35 +23,16 @@ from pipecat.processors.aggregators.llm_context import LLMContext
 from pipecat.processors.aggregators.llm_response_universal import (
     LLMContextAggregatorPair,
 )
-from pipecat.frames.frames import TTSUpdateSettingsFrame
+from pipecat.processors.frame_processor import FrameDirection, FrameProcessor
+from pipecat.processors.frameworks.rtvi import RTVIObserver, RTVIProcessor
 from pipecat.runner.types import RunnerArguments
 from pipecat.runner.utils import create_transport
 from pipecat.services.deepgram.stt import DeepgramSTTService
+from pipecat.services.openai.llm import OpenAILLMService
 from pipecat.services.rime.tts import RimeHttpTTSService
 from pipecat.transcriptions.language import Language
 from pipecat.transports.base_transport import BaseTransport, TransportParams
-import aiohttp
-from pipecat.processors.frameworks.rtvi import RTVIProcessor, RTVIObserver
-from pipecat_flows import (
-    FlowArgs,
-    FlowManager,
-    FlowResult,
-    FlowsFunctionSchema,
-    NodeConfig,
-)
-from deepgram import LiveOptions
-from openai import AsyncOpenAI
-import json
-from pipecat.frames.frames import (
-    Frame,
-    TranscriptionFrame,
-    SystemFrame,
-    UserStoppedSpeakingFrame,
-    EndFrame,
-)
-from pipecat.processors.frame_processor import FrameProcessor, FrameDirection
-from openai import AsyncOpenAI
-import json
+from pipecat_flows import FlowManager, NodeConfig
 
 
 load_dotenv(override=True)
@@ -54,15 +45,16 @@ DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 RIME_LANGUAGE_MAP = {
-    "eng": {"speakerId": "andromeda", "modelId": "arcana", "lang": 'eng'},
-    "spa": {"speakerId": "sirius", "modelId": "arcana", "lang": 'spa'},
-    "fra": {"speakerId": "destin", "modelId": "arcana", "lang": 'fra'},
-    "ger": {"speakerId": "klaus", "modelId": "mistv2", "lang": 'ger'},
+    "eng": {"speakerId": "andromeda", "modelId": "arcana", "lang": "eng"},
+    "spa": {"speakerId": "sirius", "modelId": "arcana", "lang": "spa"},
+    "fra": {"speakerId": "destin", "modelId": "arcana", "lang": "fra"},
+    "ger": {"speakerId": "klaus", "modelId": "mistv2", "lang": "ger"},
 }
 
 
 class SharedState:
     """Shared state container for the conversation."""
+
     def __init__(self):
         self.language_detected = "eng"
 
@@ -76,20 +68,21 @@ transport_params = {
 }
 
 
-# Node configurations
 def create_initial_node(shared_state: SharedState) -> NodeConfig:
+    """Create the initial conversation node."""
+    supported_languages = "English, French, Spanish, or German"
     return {
         "name": "conversation",
         "role_messages": [
             {
                 "role": "system",
-                "content": f"You are a helpful assistant. Be casual and friendly. {shared_state.language_detected} if it other than english, french , spanish , german then say you are not able to understand them and end the conversation.",
+                "content": f"You are a helpful assistant. Be casual and friendly. You support {supported_languages}. If the user speaks a language other than these, politely inform them that you only support {supported_languages} and end the conversation.",
             }
         ],
         "task_messages": [
             {
                 "role": "system",
-                "content": f"Have a natural conversation with the user in the language they are speaking in. {shared_state.language_detected} if it other than english, french , spanish , german then say you are not able to understand them and end the conversation.",
+                "content": f"Have a natural conversation with the user in the language they are speaking in ({shared_state.language_detected}). If they speak a language other than {supported_languages}, politely inform them of the supported languages and end the conversation.",
             }
         ],
         "functions": [],
@@ -111,6 +104,8 @@ def create_end_node() -> NodeConfig:
 
 
 class LanguageDetectionProcessor(FrameProcessor):
+    """Processor that detects language from transcription and updates TTS settings."""
+
     def __init__(self, api_key: str, shared_state: SharedState):
         super().__init__()
         self._client = AsyncOpenAI(api_key=api_key)
@@ -119,13 +114,16 @@ class LanguageDetectionProcessor(FrameProcessor):
         self._language_detected = False
 
     async def _detect_language(self, text: str) -> dict:
-        """Make OpenAI API call to detect language."""
+        """Make OpenAI API call to detect language.
+        
+        Returns a dict with 'lang' key containing one of: eng, spa, fra, ger
+        """
         response = await self._client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
                 {
                     "role": "system",
-                    "content": "Detect the language of the user's text. Respond with JSON 'lang' for eng, spa, fra, ger",
+                    "content": "Detect the language of the user's text. Respond with JSON containing a 'lang' key with one of: 'eng' (English), 'spa' (Spanish), 'fra' (French), 'ger' (German).",
                 },
                 {"role": "user", "content": text},
             ],
@@ -138,12 +136,15 @@ class LanguageDetectionProcessor(FrameProcessor):
         return json.loads(response.choices[0].message.content)
 
     async def process_frame(self, frame: Frame, direction: FrameDirection):
-        """Process frames and detect language before passing to LLM."""
+        """Process frames and detect language before passing to LLM.
+        
+        Buffers transcription frames until user stops speaking, then detects
+        language and updates TTS settings accordingly.
+        """
         await super().process_frame(frame, direction)
 
-        # Handle UserStoppedSpeakingFrame and EndFrame FIRST
+        # Handle UserStoppedSpeakingFrame and EndFrame - triggers language detection
         if isinstance(frame, (UserStoppedSpeakingFrame, EndFrame)):
-            # User finished speaking OR pipeline ending - now detect language
             if self._frame_buffer:
                 # Combine all buffered text
                 full_text = " ".join(
@@ -151,24 +152,27 @@ class LanguageDetectionProcessor(FrameProcessor):
                     for f, _ in self._frame_buffer
                     if isinstance(f, TranscriptionFrame)
                 )
-                logger.info(f"Full text: {full_text}")
-                language_result = await self._detect_language(full_text)
-                print(f"Detected language: {language_result}")
-                detected_lang = language_result.get("lang")
-                if detected_lang in RIME_LANGUAGE_MAP:
-                    self._shared_state.language_detected = detected_lang
-                    lang_config = RIME_LANGUAGE_MAP[detected_lang]
-                    tts_update_frame = TTSUpdateSettingsFrame(
-                        settings={
-                            "voice_id": lang_config["speakerId"],
-                            "model": lang_config["modelId"],
-                            "lang": lang_config["lang"],
-                        }
-                    )
-                    await self.push_frame(tts_update_frame, FrameDirection.DOWNSTREAM)
-                    logger.info(f"Updated TTS settings for language: {detected_lang}")
+                
+                if full_text.strip():
+                    logger.info(f"Detecting language for text: {full_text}")
+                    language_result = await self._detect_language(full_text)
+                    detected_lang = language_result.get("lang")
+                    logger.info(f"Detected language: {detected_lang}")
+                    
+                    if detected_lang in RIME_LANGUAGE_MAP:
+                        self._shared_state.language_detected = detected_lang
+                        lang_config = RIME_LANGUAGE_MAP[detected_lang]
+                        tts_update_frame = TTSUpdateSettingsFrame(
+                            settings={
+                                "voice_id": lang_config["speakerId"],
+                                "model": lang_config["modelId"],
+                                "lang": lang_config["lang"],
+                            }
+                        )
+                        await self.push_frame(tts_update_frame, FrameDirection.DOWNSTREAM)
+                        logger.info(f"Updated TTS settings for language: {detected_lang}")
 
-                # Now push all buffered frames downstream to LLM
+                # Push all buffered frames downstream to LLM
                 for buffered_frame, buffered_direction in self._frame_buffer:
                     await self.push_frame(buffered_frame, buffered_direction)
                 self._frame_buffer.clear()
@@ -176,23 +180,21 @@ class LanguageDetectionProcessor(FrameProcessor):
             # Push the UserStoppedSpeakingFrame or EndFrame
             await self.push_frame(frame, direction)
 
-        # Then handle other system frames
+        # Pass through system frames immediately
         elif isinstance(frame, SystemFrame):
             await self.push_frame(frame, direction)
 
+        # Buffer transcription frames until user stops speaking
         elif isinstance(frame, TranscriptionFrame):
-            # Keep buffering ALL transcription frames
             self._frame_buffer.append((frame, direction))
-            # Don't push yet - wait for user to stop speaking
 
+        # Pass through all other frames
         else:
-            # Pass through all other frames
             await self.push_frame(frame, direction)
 
 
-# Main setup
 async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
-    """Run the restaurant reservation bot."""
+    """Run the multilingual conversation bot."""
     if not RIME_API_KEY:
         raise ValueError("RIME_API_KEY environment variable not set")
     if not DEEPGRAM_API_KEY:
@@ -202,7 +204,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
 
     # Create shared state for the conversation
     shared_state = SharedState()
-    
+
     rtvi_processor = RTVIProcessor()
     rtvi_observer = RTVIObserver(rtvi_processor)
     session = aiohttp.ClientSession()
@@ -261,15 +263,14 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
     )
 
     @transport.event_handler("on_client_connected")
-    async def on_client_connected(transport, client):
+    async def on_client_connected(_transport, _client):
         logger.info("Client connected")
-        print("Client connected")
         task.add_observer(rtvi_observer)
         await flow_manager.initialize(create_initial_node(shared_state))
 
     @transport.event_handler("on_client_disconnected")
-    async def on_client_disconnected(transport, client):
-        logger.info(f"Client disconnected")
+    async def on_client_disconnected(_transport, _client):
+        logger.info("Client disconnected")
         await task.cancel()
 
     runner = PipelineRunner(handle_sigint=runner_args.handle_sigint)
@@ -284,5 +285,5 @@ async def bot(runner_args: RunnerArguments):
 
 if __name__ == "__main__":
     from pipecat.runner.run import main
-
+    
     main()
