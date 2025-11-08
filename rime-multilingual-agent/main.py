@@ -1,20 +1,15 @@
-import json
 import os
 
 import aiohttp
 from deepgram import LiveOptions
 from dotenv import load_dotenv
 from loguru import logger
-from openai import AsyncOpenAI
 
 from pipecat.audio.vad.silero import SileroVADAnalyzer
 from pipecat.frames.frames import (
-    EndFrame,
     Frame,
-    SystemFrame,
     TranscriptionFrame,
     TTSUpdateSettingsFrame,
-    UserStoppedSpeakingFrame,
 )
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.runner import PipelineRunner
@@ -86,20 +81,6 @@ def create_initial_node(shared_state: SharedState) -> NodeConfig:
             }
         ],
         "functions": [],
-    }
-
-
-def create_end_node() -> NodeConfig:
-    """Create the final node."""
-    return {
-        "name": "end",
-        "task_messages": [
-            {
-                "role": "system",
-                "content": "Thank them and say goodbye.",
-            }
-        ],
-        "post_actions": [{"type": "end_conversation"}],
     }
 
 
