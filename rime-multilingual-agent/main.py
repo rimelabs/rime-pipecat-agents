@@ -45,10 +45,10 @@ DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 RIME_LANGUAGE_MAP = {
-    "eng": {"speakerId": "andromeda", "modelId": "arcana", "lang": "eng"},
-    "spa": {"speakerId": "sirius", "modelId": "arcana", "lang": "spa"},
-    "fra": {"speakerId": "destin", "modelId": "arcana", "lang": "fra"},
-    "ger": {"speakerId": "klaus", "modelId": "mistv2", "lang": "ger"},
+    Language.EN: {"speakerId": "andromeda", "modelId": "arcana", "lang": "eng"},
+    Language.ES: {"speakerId": "sirius", "modelId": "arcana", "lang": "spa"},
+    Language.FR: {"speakerId": "destin", "modelId": "arcana", "lang": "fra"},
+    Language.DE: {"speakerId": "klaus", "modelId": "mistv2", "lang": "ger"},
 }
 
 
@@ -103,94 +103,82 @@ def create_end_node() -> NodeConfig:
     }
 
 
-class LanguageDetectionProcessor(FrameProcessor):
-    """Processor that detects language from transcription and updates TTS settings."""
+class LanguageDetectorProcessor(FrameProcessor):
+    """Detects language from Deepgram transcription and updates TTS via TTSUpdateSettingsFrame.
 
-    def __init__(self, api_key: str, shared_state: SharedState):
-        super().__init__()
-        self._client = AsyncOpenAI(api_key=api_key)
-        self._frame_buffer = []
-        self._shared_state = shared_state
-        self._language_detected = False
+    This processor sits between STT and LLM in the pipeline, intercepting transcription
+    frames to detect language changes and dynamically reconfigure the TTS service.
+    """
 
-    async def _detect_language(self, text: str) -> dict:
-        """Make OpenAI API call to detect language.
-        
-        Returns a dict with 'lang' key containing one of: eng, spa, fra, ger
+    def __init__(self, shared_state: SharedState):
+        """Initialize the language detector.
+
+        Args:
+            shared_state: Shared state object to track the currently detected language
+                         across the pipeline.
         """
-        response = await self._client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {
-                    "role": "system",
-                    "content": "Detect the language of the user's text. Respond with JSON containing a 'lang' key with one of: 'eng' (English), 'spa' (Spanish), 'fra' (French), 'ger' (German).",
-                },
-                {"role": "user", "content": text},
-            ],
-            response_format={"type": "json_object"},
-            temperature=0,
-        )
-        logger.info(
-            f"Language detection response: {response.choices[0].message.content}"
-        )
-        return json.loads(response.choices[0].message.content)
+        super().__init__()
+        self._shared_state: SharedState = shared_state
 
     async def process_frame(self, frame: Frame, direction: FrameDirection):
-        """Process frames and detect language before passing to LLM.
-        
-        Buffers transcription frames until user stops speaking, then detects
-        language and updates TTS settings accordingly.
+        """Process incoming frames to detect language changes.
+
+        Args:
+            frame: The frame to process (typically TranscriptionFrame from Deepgram STT).
+            direction: The direction the frame is traveling in the pipeline.
         """
+        # Always call parent's process_frame first
         await super().process_frame(frame, direction)
 
-        # Handle UserStoppedSpeakingFrame and EndFrame - triggers language detection
-        if isinstance(frame, (UserStoppedSpeakingFrame, EndFrame)):
-            if self._frame_buffer:
-                # Combine all buffered text
-                full_text = " ".join(
-                    f.text
-                    for f, _ in self._frame_buffer
-                    if isinstance(f, TranscriptionFrame)
-                )
-                
-                if full_text.strip():
-                    logger.info(f"Detecting language for text: {full_text}")
-                    language_result = await self._detect_language(full_text)
-                    detected_lang = language_result.get("lang")
-                    logger.info(f"Detected language: {detected_lang}")
-                    
-                    if detected_lang in RIME_LANGUAGE_MAP:
-                        self._shared_state.language_detected = detected_lang
-                        lang_config = RIME_LANGUAGE_MAP[detected_lang]
-                        tts_update_frame = TTSUpdateSettingsFrame(
-                            settings={
-                                "voice_id": lang_config["speakerId"],
-                                "model": lang_config["modelId"],
-                                "lang": lang_config["lang"],
-                            }
+        # Only process final transcription frames that contain Deepgram's result data
+        if isinstance(frame, TranscriptionFrame) and frame.result:
+            result = frame.result
+
+            # Navigate Deepgram's result structure to extract language information
+            # Structure: result.channel.alternatives[0].languages[0]
+            if hasattr(result, "channel") and result.channel.alternatives:
+                alternative = result.channel.alternatives[0]
+
+                # Check if Deepgram detected any languages (requires multi-language model)
+                if hasattr(alternative, "languages") and alternative.languages:
+                    detected_lang = alternative.languages[0]
+
+                    try:
+                        # Convert Deepgram's language code to Pipecat's Language enum
+                        language = Language(detected_lang)
+
+                        # Only update TTS if the language actually changed
+                        if language != self._shared_state.language_detected:
+                            logger.info(f"Language changed to {language}")
+
+                            # Look up the Rime TTS configuration for this language
+                            lang_config = RIME_LANGUAGE_MAP.get(language)
+                            if lang_config:
+                                # Push a settings update frame downstream to reconfigure TTS
+                                # This frame will be intercepted by the Rime TTS service
+                                await self.push_frame(
+                                    TTSUpdateSettingsFrame(
+                                        settings={
+                                            "voice_id": lang_config["speakerId"],
+                                            "model": lang_config["modelId"],
+                                            "lang": lang_config["lang"],
+                                        }
+                                    ),
+                                    FrameDirection.DOWNSTREAM,  # Send toward TTS service
+                                )
+
+                                # Update shared state to track the new language
+                                self._shared_state.language_detected = language
+
+                    except (ValueError, KeyError) as e:
+                        # Handle unsupported languages or missing config gracefully
+                        logger.warning(
+                            f"Could not convert language '{detected_lang}': {e}"
                         )
-                        await self.push_frame(tts_update_frame, FrameDirection.DOWNSTREAM)
-                        logger.info(f"Updated TTS settings for language: {detected_lang}")
 
-                # Push all buffered frames downstream to LLM
-                for buffered_frame, buffered_direction in self._frame_buffer:
-                    await self.push_frame(buffered_frame, buffered_direction)
-                self._frame_buffer.clear()
-
-            # Push the UserStoppedSpeakingFrame or EndFrame
-            await self.push_frame(frame, direction)
-
-        # Pass through system frames immediately
-        elif isinstance(frame, SystemFrame):
-            await self.push_frame(frame, direction)
-
-        # Buffer transcription frames until user stops speaking
-        elif isinstance(frame, TranscriptionFrame):
-            self._frame_buffer.append((frame, direction))
-
-        # Pass through all other frames
-        else:
-            await self.push_frame(frame, direction)
+        # Always pass the original frame through to the next processor (LLM)
+        # This ensures the transcription continues flowing through the pipeline
+        await self.push_frame(frame, direction)
 
 
 async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
@@ -237,7 +225,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
         [
             transport.input(),
             stt,
-            LanguageDetectionProcessor(api_key=OPENAI_API_KEY, shared_state=shared_state),
+            LanguageDetectorProcessor(shared_state=shared_state),
             context_aggregator.user(),
             llm,
             tts,
@@ -285,5 +273,5 @@ async def bot(runner_args: RunnerArguments):
 
 if __name__ == "__main__":
     from pipecat.runner.run import main
-    
+
     main()
