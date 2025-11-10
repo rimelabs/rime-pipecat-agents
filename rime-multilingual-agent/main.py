@@ -31,7 +31,7 @@ from pipecat_flows import FlowManager, NodeConfig
 
 
 load_dotenv(override=True)
-RIME_VOICE_ID = "astra"
+RIME_VOICE_ID = "andromeda"
 RIME_MODEL = "arcana"
 RIME_URL = "wss://users-ws.rime.ai/ws2"
 
@@ -49,6 +49,7 @@ RIME_LANGUAGE_MAP = {
 
 class SharedState:
     """Shared state container for the conversation."""
+
     def __init__(self):
         self.language_detected = Language.EN
 
@@ -60,6 +61,60 @@ transport_params = {
         vad_analyzer=SileroVADAnalyzer(),
     ),
 }
+
+
+def create_unsupported_language_node() -> NodeConfig:
+    """Create node for handling unsupported languages."""
+    return {
+        "name": "unsupported_language",
+        "role_messages": [
+            {
+                "role": "system",
+                "content": "You are a helpful assistant.",
+            }
+        ],
+        "task_messages": [
+            {
+                "role": "system",
+                "content": "Politely inform the user that you only support English, Spanish, French, and German. Tell them the conversation will end.",
+            }
+        ],
+        "post_actions": [
+            {"type": "end_conversation", "text": "Thank you for your time!"}
+        ],
+        "functions": [],
+    }
+
+
+async def handle_unsupported_language(
+    flow_manager: FlowManager, detected_language: str
+) -> tuple[dict[str, str], NodeConfig]:
+    """Handle unsupported language detection.
+
+    Args:
+        flow_manager: The FlowManager instance
+        detected_language: The language code that was detected
+    """
+    logger.warning(f"Unsupported language detected: {detected_language}")
+
+    # Update TTS to English
+    print(f"Unsupported language detected: {detected_language}")
+    english_config = RIME_LANGUAGE_MAP[Language.EN]
+    await flow_manager.task.queue_frame(
+        TTSUpdateSettingsFrame(
+            settings={
+                "voice_id": english_config["speakerId"],
+                "model": english_config["modelId"],
+                "lang": english_config["lang"],
+            }
+        )
+    )
+
+    # Return result and next node
+    return (
+        {"status": "unsupported_language", "language": detected_language},
+        create_unsupported_language_node(),
+    )
 
 
 def create_initial_node(shared_state: SharedState) -> NodeConfig:
@@ -79,7 +134,7 @@ def create_initial_node(shared_state: SharedState) -> NodeConfig:
                 "content": f"Have a natural conversation with the user in the language they are speaking in ({shared_state.language_detected}). If they speak a language other than {supported_languages}, politely inform them of the supported languages and end the conversation.",
             }
         ],
-        "functions": [],
+        "functions": [handle_unsupported_language],
     }
 
 
