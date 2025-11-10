@@ -49,9 +49,8 @@ RIME_LANGUAGE_MAP = {
 
 class SharedState:
     """Shared state container for the conversation."""
-
     def __init__(self):
-        self.language_detected = "eng"
+        self.language_detected = Language.EN
 
 
 transport_params = {
