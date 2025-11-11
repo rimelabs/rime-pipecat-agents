@@ -31,8 +31,6 @@ from pipecat_flows import FlowManager, NodeConfig
 
 
 load_dotenv(override=True)
-RIME_URL = "wss://users-ws.rime.ai/ws2"
-
 RIME_API_KEY = os.getenv("RIME_API_KEY")
 DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -44,21 +42,20 @@ RIME_LANGUAGE_MAP = {
     Language.DE: {"speakerId": "klaus", "modelId": "mistv2", "lang": "ger"},
 }
 
-
-class SharedState:
-    """Shared state container for the conversation."""
-
-    def __init__(self):
-        self.language_detected = Language.EN
-
-
-transport_params = {
+TRANSPORT_PARAMS = {
     "webrtc": lambda: TransportParams(
         audio_in_enabled=True,
         audio_out_enabled=True,
         vad_analyzer=SileroVADAnalyzer(),
     ),
 }
+
+
+class SharedState:
+    """Shared state container for the conversation."""
+
+    def __init__(self):
+        self.language_detected = Language.EN
 
 
 def create_unsupported_language_node() -> NodeConfig:
@@ -301,7 +298,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
 
 async def bot(runner_args: RunnerArguments):
     """Main bot entry point compatible with Pipecat Cloud."""
-    transport = await create_transport(runner_args, transport_params)
+    transport = await create_transport(runner_args, TRANSPORT_PARAMS)
     await run_bot(transport, runner_args)
 
 
