@@ -1,7 +1,7 @@
 [project]
 name = "rime-multilingual-agent"
 version = "0.1.0"
-description = "Add your description here"
+description = "Dynamic language switching example using Rime TTS and Deepgram with Pipecat Flows for real-time voice adaptation across multiple languages"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
