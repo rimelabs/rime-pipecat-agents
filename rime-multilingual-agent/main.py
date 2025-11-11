@@ -31,8 +31,6 @@ from pipecat_flows import FlowManager, NodeConfig
 
 
 load_dotenv(override=True)
-RIME_VOICE_ID = "andromeda"
-RIME_MODEL = "arcana"
 RIME_URL = "wss://users-ws.rime.ai/ws2"
 
 RIME_API_KEY = os.getenv("RIME_API_KEY")
@@ -239,11 +237,12 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
             language="multi",
         ),
     )
+    default_voice_config = RIME_LANGUAGE_MAP[Language.EN]
     tts = RimeHttpTTSService(
         api_key=RIME_API_KEY,
-        voice_id=RIME_VOICE_ID,
+        voice_id=default_voice_config["speakerId"],
         aiohttp_session=session,
-        model=RIME_MODEL,
+        model=default_voice_config["modelId"],
         params=RimeHttpTTSService.InputParams(
             language=Language.EN,
         ),
