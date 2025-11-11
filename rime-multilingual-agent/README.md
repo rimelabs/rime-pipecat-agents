@@ -38,7 +38,7 @@ The language detection logic only works with **Deepgram API** because it relies 
 
 ## Important Notes
 
-- **Voice Model Compatibility**: If you're using the Rime TTS service, use the **Mist voice model** (`mistv2`) , as Arcana is not yet fully supported for all languages in the Rime TTS service.
+- **Voice Model Compatibility**: When using `RimeTTSService`, use only **Mist model voices** (not Arcana), as `RimeTTSService` uses JSON websockets and Arcana is not yet supported.
 - The current implementation maps languages as follows:
   ```python
   Language.EN: Andromeda voice with Arcana model
