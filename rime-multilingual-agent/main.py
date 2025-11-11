@@ -51,11 +51,11 @@ TRANSPORT_PARAMS = {
 }
 
 
-class SharedState:
-    """Shared state container for the conversation."""
+class ConversationState:
+    """Current conversation state. Updated by LanguageDetectorProcessor."""
 
     def __init__(self):
-        self.language_detected = Language.EN
+        self.language = Language.EN
 
 
 class LanguageDetectorProcessor(FrameProcessor):
@@ -65,15 +65,15 @@ class LanguageDetectorProcessor(FrameProcessor):
     frames to detect language changes and dynamically reconfigure the TTS service.
     """
 
-    def __init__(self, shared_state: SharedState):
+    def __init__(self, conversation_state: ConversationState):
         """Initialize the language detector.
 
         Args:
-            shared_state: Shared state object to track the currently detected language
-                         across the pipeline.
+            conversation_state: Conversation state object to track the currently detected language
+                               across the pipeline.
         """
         super().__init__()
-        self._shared_state: SharedState = shared_state
+        self._conversation_state: ConversationState = conversation_state
 
     async def process_frame(self, frame: Frame, direction: FrameDirection):
         """Process incoming frames to detect language changes.
@@ -103,7 +103,7 @@ class LanguageDetectorProcessor(FrameProcessor):
                         language = Language(detected_lang)
 
                         # Only update TTS if the language actually changed
-                        if language != self._shared_state.language_detected:
+                        if language != self._conversation_state.language:
                             logger.info(f"Language changed to {language}")
 
                             # Look up the Rime TTS configuration for this language
@@ -122,8 +122,8 @@ class LanguageDetectorProcessor(FrameProcessor):
                                     FrameDirection.DOWNSTREAM,  # Send toward TTS service
                                 )
 
-                                # Update shared state to track the new language
-                                self._shared_state.language_detected = language
+                                # Update conversation state to track the new language
+                                self._conversation_state.language = language
 
                     except (ValueError, KeyError) as e:
                         # Handle unsupported languages or missing config gracefully
@@ -190,7 +190,7 @@ async def handle_unsupported_language(
     )
 
 
-def create_initial_node(shared_state: SharedState) -> NodeConfig:
+def create_initial_node(conversation_state: ConversationState) -> NodeConfig:
     """Create the initial conversation node."""
     supported_languages = "English, French, Spanish, or German"
     return {
@@ -204,7 +204,7 @@ def create_initial_node(shared_state: SharedState) -> NodeConfig:
         "task_messages": [
             {
                 "role": "system",
-                "content": f"Have a natural conversation with the user in the language they are speaking in ({shared_state.language_detected}). If they speak a language other than {supported_languages}, politely inform them of the supported languages and end the conversation.",
+                "content": f"Have a natural conversation with the user in the language they are speaking in ({conversation_state.language}). If they speak a language other than {supported_languages}, politely inform them of the supported languages and end the conversation.",
             }
         ],
         "functions": [handle_unsupported_language],
@@ -220,8 +220,8 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
     if not OPENAI_API_KEY:
         raise ValueError("OPENAI_API_KEY environment variable not set")
 
-    # Create shared state for the conversation
-    shared_state = SharedState()
+    # Create conversation state
+    conversation_state = ConversationState()
 
     rtvi_processor = RTVIProcessor()
     rtvi_observer = RTVIObserver(rtvi_processor)
@@ -256,7 +256,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
         [
             transport.input(),
             stt,
-            LanguageDetectorProcessor(shared_state=shared_state),
+            LanguageDetectorProcessor(conversation_state=conversation_state),
             context_aggregator.user(),
             llm,
             tts,
@@ -285,7 +285,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
     async def on_client_connected(_transport, _client):
         logger.info("Client connected")
         task.add_observer(rtvi_observer)
-        await flow_manager.initialize(create_initial_node(shared_state))
+        await flow_manager.initialize(create_initial_node(conversation_state))
 
     @transport.event_handler("on_client_disconnected")
     async def on_client_disconnected(_transport, _client):
