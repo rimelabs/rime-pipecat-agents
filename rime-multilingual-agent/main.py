@@ -75,6 +75,45 @@ class LanguageDetectorProcessor(FrameProcessor):
         super().__init__()
         self._conversation_state: ConversationState = conversation_state
 
+    async def switch_detected_language(self, detected_lang: str):
+        """Switch to a new detected language by updating Rime TTS settings.
+
+        Args:
+            detected_lang: The language code detected by Deepgram (e.g., 'en', 'es', 'fr').
+        """
+        try:
+            # Convert Deepgram's language code to Pipecat's Language enum
+            language = Language(detected_lang)
+
+            # Only update TTS if the language actually changed
+            if language != self._conversation_state.language:
+                logger.info(f"Language changed to {language}")
+
+                # Look up the Rime TTS configuration for this language
+                lang_config = RIME_LANGUAGE_MAP.get(language)
+                if lang_config:
+                    # Push a settings update frame downstream to reconfigure TTS
+                    # This frame will be intercepted by the Rime TTS service
+                    await self.push_frame(
+                        TTSUpdateSettingsFrame(
+                            settings={
+                                "voice_id": lang_config["speakerId"],
+                                "model": lang_config["modelId"],
+                                "lang": lang_config["lang"],
+                            }
+                        ),
+                        FrameDirection.DOWNSTREAM,  # Send toward TTS service
+                    )
+
+                    # Update conversation state to track the new language
+                    self._conversation_state.language = language
+
+        except (ValueError, KeyError) as e:
+            # Handle unsupported languages or missing config gracefully
+            logger.warning(
+                f"Could not convert language '{detected_lang}': {e}"
+            )
+
     async def process_frame(self, frame: Frame, direction: FrameDirection):
         """Process incoming frames to detect language changes.
 
@@ -97,39 +136,7 @@ class LanguageDetectorProcessor(FrameProcessor):
                 # Check if Deepgram detected any languages (requires multi-language model)
                 if hasattr(alternative, "languages") and alternative.languages:
                     detected_lang = alternative.languages[0]
-
-                    try:
-                        # Convert Deepgram's language code to Pipecat's Language enum
-                        language = Language(detected_lang)
-
-                        # Only update TTS if the language actually changed
-                        if language != self._conversation_state.language:
-                            logger.info(f"Language changed to {language}")
-
-                            # Look up the Rime TTS configuration for this language
-                            lang_config = RIME_LANGUAGE_MAP.get(language)
-                            if lang_config:
-                                # Push a settings update frame downstream to reconfigure TTS
-                                # This frame will be intercepted by the Rime TTS service
-                                await self.push_frame(
-                                    TTSUpdateSettingsFrame(
-                                        settings={
-                                            "voice_id": lang_config["speakerId"],
-                                            "model": lang_config["modelId"],
-                                            "lang": lang_config["lang"],
-                                        }
-                                    ),
-                                    FrameDirection.DOWNSTREAM,  # Send toward TTS service
-                                )
-
-                                # Update conversation state to track the new language
-                                self._conversation_state.language = language
-
-                    except (ValueError, KeyError) as e:
-                        # Handle unsupported languages or missing config gracefully
-                        logger.warning(
-                            f"Could not convert language '{detected_lang}': {e}"
-                        )
+                    await self.switch_detected_language(detected_lang)
 
         # Always pass the original frame through to the next processor (LLM)
         # This ensures the transcription continues flowing through the pipeline
