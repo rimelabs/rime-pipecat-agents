@@ -1,0 +1,15 @@
+[project]
+name = "rime-multilingual-agent"
+version = "0.1.0"
+description = "Dynamic language switching example using Rime TTS and Deepgram with Pipecat Flows for real-time voice adaptation across multiple languages"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "aiofiles>=24.1.0",
+    "pipecat-ai-flows>=0.0.21",
+    "pipecat-ai-small-webrtc-prebuilt>=1.0.0",
+    "pipecat-ai[daily,deepgram,local,openai,rime,silero,webrtc,websocket]>=0.0.92",
+    "python-dotenv>=1.2.1",
+    "simpleaudio>=1.0.4",
+    "uvicorn>=0.38.0",
+]
