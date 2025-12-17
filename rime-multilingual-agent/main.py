@@ -1,5 +1,9 @@
+import datetime
+import io
 import os
+import wave
 
+import aiofiles
 import aiohttp
 from deepgram import LiveOptions
 from dotenv import load_dotenv
@@ -28,6 +32,7 @@ from pipecat.services.rime.tts import RimeHttpTTSService
 from pipecat.transcriptions.language import Language
 from pipecat.transports.base_transport import BaseTransport, TransportParams
 from pipecat_flows import FlowManager, NodeConfig
+from pipecat.processors.audio.audio_buffer_processor import AudioBufferProcessor
 
 
 load_dotenv(override=True)
@@ -36,8 +41,8 @@ DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 RIME_LANGUAGE_MAP = {
-    Language.EN: {"speakerId": "andromeda", "modelId": "arcana", "lang": "eng"},
-    Language.ES: {"speakerId": "sirius", "modelId": "arcana", "lang": "spa"},
+    Language.EN: {"speakerId": "celeste", "modelId": "arcana", "lang": "eng"},
+    Language.ES: {"speakerId": "astra", "modelId": "arcana", "lang": "spa"},
     Language.FR: {"speakerId": "destin", "modelId": "arcana", "lang": "fra"},
     Language.DE: {"speakerId": "klaus", "modelId": "mistv2", "lang": "ger"},
 }
@@ -49,6 +54,54 @@ TRANSPORT_PARAMS = {
         vad_analyzer=SileroVADAnalyzer(),
     ),
 }
+
+
+async def prepare_audio_filename(prefix: str = "merged") -> str:
+    """
+    Prepare a filename for audio recording with timestamp.
+
+    Args:
+        prefix: Prefix for the filename (default: "merged")
+
+    Returns:
+        str: The prepared filename with path
+    """
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"recordings/{prefix}_{timestamp}.wav"
+    os.makedirs("recordings", exist_ok=True)
+    return filename
+
+
+async def save_audio_file(
+    audio: bytes, filename: str, sample_rate: int, num_channels: int
+) -> None:
+    """
+    Save audio data to a WAV file.
+
+    Args:
+        audio: Raw audio data bytes
+        filename: Path where the WAV file will be saved
+        sample_rate: Audio sample rate in Hz
+        num_channels: Number of audio channels (1 for mono, 2 for stereo)
+    """
+    if not audio:
+        logger.warning("No audio data to save for %s", filename)
+        return
+
+    try:
+        with io.BytesIO() as buffer:
+            with wave.open(buffer, "wb") as wf:
+                wf.setnchannels(num_channels)
+                wf.setsampwidth(2)  # 16-bit audio
+                wf.setframerate(sample_rate)
+                wf.writeframes(audio)
+
+            async with aiofiles.open(filename, "wb") as file:
+                await file.write(buffer.getvalue())
+
+        logger.info("Audio successfully saved to %s", filename)
+    except Exception as e:
+        logger.error("Failed to save audio to %s: %s", filename, str(e))
 
 
 class ConversationState:
@@ -110,9 +163,7 @@ class LanguageDetectorProcessor(FrameProcessor):
 
         except (ValueError, KeyError) as e:
             # Handle unsupported languages or missing config gracefully
-            logger.warning(
-                f"Could not convert language '{detected_lang}': {e}"
-            )
+            logger.warning(f"Could not convert language '{detected_lang}': {e}")
 
     async def process_frame(self, frame: Frame, direction: FrameDirection):
         """Process incoming frames to detect language changes.
@@ -198,22 +249,23 @@ async def handle_unsupported_language(
 
 
 def create_initial_node(conversation_state: ConversationState) -> NodeConfig:
-    """Create the initial conversation node."""
+    """Create the initial conversation node that waits for user input."""
     supported_languages = "English, French, Spanish, or German"
     return {
         "name": "conversation",
         "role_messages": [
             {
                 "role": "system",
-                "content": f"You are a helpful assistant. Be casual and friendly. You support {supported_languages}. If the user speaks a language other than these, politely inform them that you only support {supported_languages} and end the conversation.",
-            }
+                "content": f"You are a helpful assistant. Be casual and friendly. You support {supported_languages}. If the user speaks a language other than these, politely inform them that you only support {supported_languages} and end the conversation. Please don't use emojis. Wait for the user to speak first before responding. Write only one sentence per question asked.",
+            },
         ],
         "task_messages": [
             {
                 "role": "system",
-                "content": f"Have a natural conversation with the user in the language they are speaking in ({conversation_state.language}). If they speak a language other than {supported_languages}, politely inform them of the supported languages and end the conversation.",
+                "content": f"Have a natural conversation only repond in max one or two sentences per question asked. start by telling hi",
             }
         ],
+        # Remove task_messages to prevent bot from speaking first
         "functions": [handle_unsupported_language],
     }
 
@@ -233,6 +285,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
     rtvi_processor = RTVIProcessor()
     rtvi_observer = RTVIObserver(rtvi_processor)
     session = aiohttp.ClientSession()
+    audio_buffer = AudioBufferProcessor()
 
     stt = DeepgramSTTService(
         api_key=DEEPGRAM_API_KEY,
@@ -269,9 +322,16 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
             tts,
             rtvi_processor,
             transport.output(),
+            audio_buffer,
             context_aggregator.assistant(),
         ]
     )
+
+    @audio_buffer.event_handler("on_audio_data")
+    async def on_audio_data(processor, audio, sample_rate, num_channels):
+        filename = await prepare_audio_filename(prefix="multilingual")
+        logger.info("Saving audio to %s", filename)
+        await save_audio_file(audio, filename, sample_rate, num_channels)
 
     task = PipelineTask(
         pipeline,
@@ -291,8 +351,11 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
     @transport.event_handler("on_client_connected")
     async def on_client_connected(_transport, _client):
         logger.info("Client connected")
+        await audio_buffer.start_recording()
         task.add_observer(rtvi_observer)
+        # Initialize flow manager but don't trigger bot to speak
         await flow_manager.initialize(create_initial_node(conversation_state))
+        # Remove any initial LLM run frame that would make bot speak first
 
     @transport.event_handler("on_client_disconnected")
     async def on_client_disconnected(_transport, _client):
